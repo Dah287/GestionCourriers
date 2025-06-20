@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CourrierRepository extends JpaRepository<Courrier , Long> {
-    Courrier findByNumeroOrdre(String numeroOrdre);
-    Optional <Courrier> findById(Long id);
-    // Recherche contenant la chaîne entitesTransmises (LIKE %entitesTransmises%)
-    List <Courrier> findByEntitesTransmisesContaining(String entitesTransmises);
 
-    List<Courrier> findByStatusAndEntitesTransmises(Status status, String entitesTransmises);
+//    Courrier findByNumeroOrdre(String numeroOrdre);
+//    Optional <Courrier> findById(Long id);
+//    // Recherche contenant la chaîne entitesTransmises (LIKE %entitesTransmises%)
+//    List <Courrier> findByEntitesTransmisesContaining(String entitesTransmises);
+
+    List<Courrier> findByStatusAndServiceDestinataire(Status status, String entitesTransmises);
     List<Courrier> findByStatusAndBureauRecepteur(Status status, String bureauRecepteur);
 }

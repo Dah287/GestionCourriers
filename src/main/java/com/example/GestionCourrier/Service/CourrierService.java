@@ -43,10 +43,12 @@ public class CourrierService {
         courrier.setDelaisJours(courrierDetails.getDelaisJours());
         courrier.setInstructions(courrierDetails.getInstructions());
         courrier.setInstructionSupplementaire(courrierDetails.getInstructionSupplementaire());
-        courrier.setEntitesTransmises(courrierDetails.getEntitesTransmises());
+        //courrier.setEntitesTransmises(courrierDetails.getEntitesTransmises());
 
         return courrierRepository.save(courrier);
     }
+
+
 
     public Courrier updateCourrierStatus(Long id, Courrier courrierDetails) {
         Courrier courrier = courrierRepository.findById(id)
@@ -57,9 +59,9 @@ public class CourrierService {
 
         return courrierRepository.save(courrier);
     }
-    // Méthode pour status = RECU_SERVICE et entitesTransmises = valeur donnée
+   //  Méthode pour status = RECU_SERVICE et entitesTransmises = valeur donnée
     public List<Courrier> getCourriersParStatusEtEntiteTransmise(String entite) {
-        return courrierRepository.findByStatusAndEntitesTransmises(Status .RECU_SERVICE, entite);
+        return courrierRepository.findByStatusAndServiceDestinataire(Status .RECU_SERVICE, entite);
     }
     // Méthode pour status = RECU_SERVICE et entitesTransmises = valeur donnée
     public List<Courrier> getCourriersParStatusEtEntiteTransmise2(String entite) {

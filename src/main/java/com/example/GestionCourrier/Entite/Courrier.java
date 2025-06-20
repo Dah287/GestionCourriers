@@ -20,7 +20,7 @@ public class Courrier {
     @Column(name = "type_courrier", nullable = false)
     private String typeCourrier;
 
-    @Column(name = "numero_ordre", unique = true, nullable = false)
+    @Column(name = "numero_ordre",  nullable = false)
     private String numeroOrdre;
 
     @Column(name = "entite_expeditrice", nullable = false)
@@ -50,8 +50,14 @@ public class Courrier {
     @Column(name = "instruction_supplementaire", columnDefinition = "TEXT")
     private String instructionSupplementaire;
 
-    @Column(name = "entites_transmises")
-    private String entitesTransmises;
+    private String entiteTransmise;
+
+    @ElementCollection
+    @CollectionTable(name = "courrier_services_transmis", joinColumns = @JoinColumn(name = "courrier_id"))
+    @Column(name = "service_transmis")
+    private List<String> servicesTransmis;
+
+    private String serviceDestinataire;
 
 
 
@@ -197,13 +203,30 @@ public class Courrier {
         this.instructionSupplementaire = instructionSupplementaire;
     }
 
-    public String getEntitesTransmises() {
-        return entitesTransmises;
+    public String getEntiteTransmise() {
+        return entiteTransmise;
     }
 
-    public void setEntitesTransmises(String entitesTransmises) {
-        this.entitesTransmises = entitesTransmises;
+    public void setEntiteTransmise(String entiteTransmise) {
+        this.entiteTransmise = entiteTransmise;
     }
+
+    public List<String> getServicesTransmis() {
+        return servicesTransmis;
+    }
+
+    public void setServicesTransmis(List<String> servicesTransmis) {
+        this.servicesTransmis = servicesTransmis;
+    }
+
+    public String getServiceDestinataire() {
+        return serviceDestinataire;
+    }
+
+    public void setServiceDestinataire(String serviceDestinataire) {
+        this.serviceDestinataire = serviceDestinataire;
+    }
+
 
     // Getters et Setters pour les nouveaux champs
     public Status getStatus() {

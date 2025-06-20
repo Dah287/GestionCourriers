@@ -10,11 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/courriers")
-@CrossOrigin(origins = "http://192.168.1.112:3000")
+@CrossOrigin(origins = "http://192.168.1.86:3000")
 public class CourrierController {
 
     private final CourrierService  courrierService;
@@ -81,7 +83,7 @@ public class CourrierController {
         return ResponseEntity.ok(courriers);
     }
 
-    // Récupérer les courriers avec status = RECU_SERVICE et entitesTransmises = "XXX"
+     //Récupérer les courriers avec status = RECU_SERVICE et entitesTransmises = "XXX"
     @GetMapping("/recu-service/par-entite")
     public ResponseEntity<List<Courrier>> getCourriersParEntite(@RequestParam String entite) {
         List<Courrier> courriers = courrierService.getCourriersParStatusEtEntiteTransmise(entite);
@@ -106,4 +108,53 @@ public class CourrierController {
         courrierService.deleteCourrier(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @PostMapping("/courriers")
+    public ResponseEntity<?> createCourriers(@RequestBody Courrier courrier) {
+        List<Courrier> courriersCrees = new ArrayList<>() ;
+
+        List<String> services = courrier.getServicesTransmis();
+
+        if (services == null || services.isEmpty()) {
+            // Aucun service sélectionné → un seul courrier avec servicesTransmis = null
+            courrier.setServicesTransmis(null);
+            Courrier saved = courrierRepository.save(courrier);
+            courriersCrees.add(saved);
+        } else {
+            // Plusieurs services sélectionnés → créer un courrier pour chaque service
+            for (String service : services) {
+                Courrier c = new Courrier();
+                c.setDateArrivee(courrier.getDateArrivee());
+                c.setTypeCourrier(courrier.getTypeCourrier());
+                c.setNumeroOrdre(courrier.getNumeroOrdre());
+                c.setEntiteExpeditrice(courrier.getEntiteExpeditrice());
+                c.setDateExpediteur(courrier.getDateExpediteur());
+                c.setReference(courrier.getReference());
+                c.setObjet(courrier.getObjet());
+                c.setLangue(courrier.getLangue());
+                c.setCopies(courrier.getCopies());
+                c.setUrgent(courrier.isUrgent());
+                c.setDelaisJours(courrier.getDelaisJours());
+                c.setInstructions(courrier.getInstructions());
+                c.setInstructionSupplementaire(courrier.getInstructionSupplementaire());
+                c.setEntiteTransmise(courrier.getEntiteTransmise());
+                c.setServicesTransmis(Collections .singletonList(service));
+                c.setServiceDestinataire(service);
+
+                // Champs supplémentaires
+                c.setStatus(courrier.getStatus());
+                c.setDateEnvoi(courrier.getDateEnvoi());
+                c.setDateReceptionService(courrier.getDateReceptionService());
+                c.setDateReceptionBureau(courrier.getDateReceptionBureau());
+                c.setBureauRecepteur(courrier.getBureauRecepteur());
+
+                Courrier saved = courrierRepository.save(c);
+                courriersCrees.add(saved);
+            }
+        }
+
+        return ResponseEntity.ok(courriersCrees);
+    }
+
 }
