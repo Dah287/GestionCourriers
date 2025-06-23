@@ -47,6 +47,7 @@ const MailReceptionFormTest = () => {
     urgent: false,
     delaisJours: "",
     instructions: {
+
       elementReponse: false,
       exploitationCompte: false,
       avecAccord: false,
@@ -55,7 +56,9 @@ const MailReceptionFormTest = () => {
       etude: false,
     },
     instructionSupplementaire: "", // Maintenant un simple string
-    entitesTransmises: [], // Changez de string à array
+entiteTransmise: "",
+servicesTransmis: [],
+
   };
 
 const [selectedEntite, setSelectedEntite] = useState("");
@@ -84,15 +87,21 @@ const handleServicesChange = (event) => {
   } = event;
   setFormData(prev => ({
     ...prev,
-    entitesTransmises: typeof value === 'string' ? value.split(',') : value,
+    servicesTransmis: typeof value === 'string' ? value.split(',') : value,
   }));
 };
-  const handleEntiteChange = (e) => {
-    const entite = e.target.value;
-    setSelectedEntite(entite);
-    setServicesDisponibles(entitesEtServices[entite] || []);
-    setFormData(prev => ({ ...prev, entitesTransmises: [] }));
-  };
+
+const handleEntiteChange = (e) => {
+  const entite = e.target.value;
+  setSelectedEntite(entite);
+  setServicesDisponibles(entitesEtServices[entite] || []);
+  setFormData(prev => ({ 
+    ...prev, 
+    entiteTransmise: entite, 
+    servicesTransmis: []
+  }));
+};
+
   const [formData, setFormData] = useState(initialFormData);
 
   // Options pour Entité Expéditrice
@@ -215,6 +224,7 @@ const handleServicesChange = (event) => {
     input: { color: "white" }, // Texte blanc
     label: { color: "white" }, // Label blanc
   }}
+  required
 />
         </Box>
 
@@ -246,6 +256,7 @@ const handleServicesChange = (event) => {
               name="numeroOrdre"
               value={formData.numeroOrdre}
               onChange={handleChange}
+              required
             />
           </Grid>
           <Grid item xs={12} sm={4}sx={{width: "31%",}}>
@@ -287,6 +298,7 @@ const handleServicesChange = (event) => {
               value={formData.reference}
               onChange={handleChange}
               sx={{ "& .MuiInputBase-root": { height: "56px" } }}
+              required
             />
           </Grid>
 
@@ -360,7 +372,8 @@ const handleServicesChange = (event) => {
         <Select
           multiple
           name="entitesTransmises"
-          value={formData.entitesTransmises}
+          value={formData.servicesTransmis || []}
+
           onChange={handleServicesChange}
           label="Services"
           renderValue={(selected) => selected.join(', ')}
@@ -374,7 +387,8 @@ const handleServicesChange = (event) => {
         >
           {servicesDisponibles.map((service) => (
             <MenuItem key={service} value={service}>
-              <Checkbox checked={formData.entitesTransmises.includes(service)} />
+              <Checkbox checked={(formData.servicesTransmis || []).includes(service)} />
+
               <ListItemText primary={service} />
             </MenuItem>
           ))}

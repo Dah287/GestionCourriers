@@ -12,6 +12,11 @@ import MailReceptionForm from './components/MailReceptionForm';
 import CourrierListService from './components/CourrierListService';
 import CourrierListBureau from './components/CourrierListBureau';
 import MailReceptionFormTest from './components/MailReceptionFormTest';
+import DecompteList from './components/DecompteList';
+import Dashboard from './components/DashboardDecomptes';
+import DashboardDecomptes from './components/DashboardDecomptes';
+import AjoutDecompte from './components/AjoutDecompte';
+import DecompteListBCP from './components/DecompteListBCP';
 
 // Création du thème Material UI
 const theme = createTheme({
@@ -50,12 +55,16 @@ function App() {
             <Routes>
               <Route path="/" element={<CourrierList />} />
               <Route path="/courriers" element={<CourrierList />} />
+              <Route path="/decomptes" element={<DecompteList />} />
+              <Route path="/dashbord" element={<DashboardDecomptes />} />
               <Route path="/add" element={<ReceptionCourrierForm />} />
+              <Route path="/decomptes/add2" element={<AjoutDecompte />} />
               <Route path="/courriers/add" element={<MailReceptionFormTest />} />
               <Route path="/courriers/:courrierId" element={<MailReceptionFormTest />} />
               <Route path="/courriers/edit/:courrierId" element={<MailReceptionFormTest />} />
-                <Route path="/courriers/Service" element={<CourrierListService />} />
-                <Route path="/courriers/Bureau" element={<CourrierListBureau />} />
+              <Route path="/courriers/Service" element={<CourrierListService />} />
+              <Route path="/courriers/Bureau" element={<CourrierListBureau />} />
+               <Route path="/decomptes/bcp" element={<DecompteListBCP />} />
             </Routes>
           </div>
         </Router>

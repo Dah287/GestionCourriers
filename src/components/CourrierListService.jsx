@@ -68,7 +68,7 @@ const CourrierListService = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await courrierApi.getCourriersParEntite("SERVICE DE LA COMPTABILITE ET FINANCES");
+      const response = await courrierApi.getCourriersParEntite("SERVICE INFORMATIQUE");
       setCourriers(response.data);
     } catch (err) {
       setError(err.message || "Failed to load courriers.");
@@ -106,7 +106,8 @@ const CourrierListService = () => {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const response = await courrierApi.getCourriersParEntite("SERVICE DE LA COMPTABILITE ET FINANCES");
+      const response = await courrierApi.getCourriersParEntite("SERVICE INFORMATIQUE");
+      console.log("date:",response.data)
       setCourriers(response.data);
     } catch (err) {
       setError(err.message);

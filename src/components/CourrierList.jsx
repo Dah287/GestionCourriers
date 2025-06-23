@@ -160,7 +160,7 @@ const handleTransferToService = async () => {
   
   // Ajout de la confirmation
   const isConfirmed = window.confirm(
-    `Êtes-vous sûr de vouloir transférer le courrier ${selectedRow.numeroOrdre} au service ?`
+    `Êtes-vous sûr de vouloir transférer le decompte ${selectedRow.numDecompte} au BCP ?`
   );
   
   if (!isConfirmed) return;
@@ -272,27 +272,61 @@ const getStatusColor = (status) => {
         </Toolbar>
       </AppBar>
 
-      <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-        <Container maxWidth="xl">
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            aria-label="navigation tabs"
-            sx={{
-              "& .MuiTab-root": {
-                minHeight: 64,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Tab icon={<Dashboard />} label="Tableau de Bord" iconPosition="start" sx={{ mr: 2 }} />
-            <Tab icon={<Mail />} label="Gestion Courriers" iconPosition="start" sx={{ mr: 2 }} />
-            <Tab icon={<AccountBalance />} label="Suivi Décomptes" iconPosition="start" />
-          </Tabs>
-        </Container>
-      </Paper>
+<Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+  <Container maxWidth="xl">
+    <Tabs
+      value={activeTab}
+      onChange={(_, newValue) => {
+        if (newValue === 0) navigate('/dashbord');
+        if (newValue === 2) navigate('/decomptes');
+        setActiveTab(newValue);
+      }}
+      aria-label="navigation tabs"
+      sx={{
+        "& .MuiTab-root": {
+          minHeight: 64,
+          textTransform: "none",
+          fontSize: "1rem",
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Tab 
+        icon={<Dashboard />} 
+        label="Tableau de Bord" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<Mail />} 
+        label="Gestion Courriers" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<AccountBalance />} 
+        label="Suivi Décomptes" 
+        iconPosition="start" 
+        sx={{
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '80%',
+            height: 3,
+            bgcolor: 'primary.main',
+            borderRadius: '3px 3px 0 0',
+            opacity: activeTab === 2 ? 1 : 0,
+            transition: 'opacity 0.3s'
+          }
+        }}
+      />
+    </Tabs>
+  </Container>
+</Paper>
 
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -329,9 +363,15 @@ const getStatusColor = (status) => {
             </Typography>
           </Paper>
           <Paper sx={{ p: 2, flex: 1 }}>
-            <Typography variant="subtitle2">En cours de traitement</Typography>
+            <Typography variant="subtitle2">En cours Réception Service</Typography>
             <Typography variant="h4">
-              {courriers.filter(c => c.status === 'EN_COURS').length}
+              {courriers.filter(c => c.status === 'RECU_SERVICE').length}
+            </Typography>
+          </Paper>
+                    <Paper sx={{ p: 2, flex: 1 }}>
+            <Typography variant="subtitle2">En cours Réception Bureau</Typography>
+            <Typography variant="h4">
+              {courriers.filter(c => c.status === 'RECU_BUREAU').length}
             </Typography>
           </Paper>
           <Paper sx={{ p: 2, flex: 1 }}>
@@ -352,9 +392,12 @@ const getStatusColor = (status) => {
                   <TableCell>Type</TableCell>
                   <TableCell>Expéditeur</TableCell>
                   <TableCell>Objet</TableCell>
+                  <TableCell>Entite Transmis</TableCell>
+                   <TableCell>Service Transmis</TableCell>
                   <TableCell>Statut</TableCell>
                   <TableCell>Date arrivée</TableCell>
                   <TableCell>Urgent</TableCell>
+                   <TableCell>Délais</TableCell>
                   <TableCell>Date Envoi</TableCell>
                    <TableCell>Date Reception Service</TableCell>
                     <TableCell>Date Reception Bureau</TableCell>
@@ -368,6 +411,8 @@ const getStatusColor = (status) => {
                     <TableCell>{row.typeCourrier}</TableCell>
                     <TableCell>{row.entiteExpeditrice}</TableCell>
                     <TableCell>{row.objet}</TableCell>
+                     <TableCell>{row.entiteTransmise}</TableCell>
+                     <TableCell>{row.serviceDestinataire}</TableCell>
 <TableCell>
   <Chip
     label={getStatusLabel(row.status)}
@@ -380,6 +425,7 @@ const getStatusColor = (status) => {
                     <TableCell>
                       {row.urgent && <WarningIcon color="error" />}
                     </TableCell>
+                    <TableCell>{row.delaisJours} /Jours</TableCell>
                     <TableCell>{formatDate(row.dateEnvoi)}</TableCell>
                       <TableCell>{formatDate(row.dateReceptionService)}</TableCell>
                         <TableCell>{formatDate(row.dateReceptionBureau)}</TableCell>
