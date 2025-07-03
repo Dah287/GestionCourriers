@@ -78,6 +78,9 @@ public class Courrier {
     @Column(name = "bureau_recepteur")
     private String bureauRecepteur;
 
+    @Column(name = "date_traitement")
+    private LocalDate dateTraitement;
+
 
     // Constructeurs
     public Courrier() {
@@ -251,6 +254,14 @@ public class Courrier {
 
     public void setDateReceptionService(LocalDate dateReceptionService) {
         this.dateReceptionService = dateReceptionService;
+    }
+
+    public LocalDate getDateTraitement() {
+        return dateTraitement;
+    }
+
+    public void setDateTraitement(LocalDate dateReceptionService) {
+        this.dateTraitement = dateReceptionService;
     }
 
     public LocalDate getDateReceptionBureau() {

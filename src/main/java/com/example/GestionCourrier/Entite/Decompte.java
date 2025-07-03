@@ -2,6 +2,7 @@ package com.example.GestionCourrier.Entite;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -32,6 +33,16 @@ public class Decompte {
     @ManyToOne
     @JoinColumn(name = "marche_id")
     private Marche marche;
+
+    //
+
+    private LocalDate  date_envoi_scf;
+    private LocalDate date_envoi_bcp;
+    private LocalDate date_envoi_atp;
+    private LocalDate date_envoi_bcp_scf;
+    private LocalDate date_envoi_scf_dpf;
+    private LocalDate date_rejete_atp;
+    private LocalDate date_rejete_bcp;
 
 
     // Getters
@@ -114,6 +125,63 @@ public class Decompte {
 
     public void setMarche(Marche marche) {
         this.marche = marche;
+    }
+
+//
+public LocalDate getDate_envoi_scf() {
+    return date_envoi_scf;
+}
+
+    public void setDate_envoi_scf(LocalDate date_envoi_scf) {
+        this.date_envoi_scf = date_envoi_scf;
+    }
+
+    public LocalDate getDate_envoi_bcp() {
+        return date_envoi_bcp;
+    }
+
+    public void setDate_envoi_bcp(LocalDate date_envoi_bcp) {
+        this.date_envoi_bcp = date_envoi_bcp;
+    }
+
+    public LocalDate getDate_envoi_atp() {
+        return date_envoi_atp;
+    }
+
+    public void setDate_envoi_atp(LocalDate date_envoi_atp) {
+        this.date_envoi_atp = date_envoi_atp;
+    }
+
+    public LocalDate getDate_envoi_bcp_scf() {
+        return date_envoi_bcp_scf;
+    }
+
+    public void setDate_envoi_bcp_scf(LocalDate date_envoi_bcp_scf) {
+        this.date_envoi_bcp_scf = date_envoi_bcp_scf;
+    }
+
+    public LocalDate getDate_envoi_scf_dpf() {
+        return date_envoi_scf_dpf;
+    }
+
+    public void setDate_envoi_scf_dpf(LocalDate date_envoi_scf_dpf) {
+        this.date_envoi_scf_dpf = date_envoi_scf_dpf;
+    }
+
+    public LocalDate getDate_rejete_atp() {
+        return date_rejete_atp;
+    }
+
+    public void setDate_rejete_atp(LocalDate date_rejete_atp) {
+        this.date_rejete_atp = date_rejete_atp;
+    }
+
+    public LocalDate getDate_rejete_bcp() {
+        return date_rejete_bcp;
+    }
+
+    public void setDate_rejete_bcp(LocalDate date_rejete_bcp) {
+        this.date_rejete_bcp = date_rejete_bcp;
     }
 
 

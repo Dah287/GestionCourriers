@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/courriers")
-@CrossOrigin(origins = "http://192.168.1.141:3000")
+@CrossOrigin(origins = "http://192.168.1.44:3000")
 public class CourrierController {
 
     private final CourrierService  courrierService;
@@ -52,7 +52,7 @@ public class CourrierController {
     public ResponseEntity<Courrier> updateStatusTraite(@PathVariable Long id) {
         Courrier Courrier = courrierRepository.findById(id).orElseThrow();
         Courrier.setStatus(Status.TRAITE);
-        Courrier.setDateEnvoi(LocalDate.now()); // ✅ Ajouter la date d'envoi actuelle
+        Courrier.setDateTraitement(LocalDate.now()); // ✅ Ajouter la date d'envoi actuelle
         return ResponseEntity.ok(courrierRepository.save(Courrier));
     }
     @PutMapping("update-status-service/{id}")
