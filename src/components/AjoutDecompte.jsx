@@ -13,7 +13,16 @@ import {
   FormHelperText,
   CircularProgress,
   Divider,
-  Autocomplete
+  Autocomplete,
+    Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell
 } from '@mui/material';
 import { AccountBalance, Save, Cancel } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +35,9 @@ const AjoutDecompte = () => {
   const [loadingMarches, setLoadingMarches] = useState(false);
   const [errors, setErrors] = useState({});
   const [marches, setMarches] = useState([]);
-  
+  const [openDialog, setOpenDialog] = useState(false);
+const [searchTerm, setSearchTerm] = useState('');
+
   const currentDate = format(new Date(), 'yyyy-MM-dd');
 
   const [decompte, setDecompte] = useState({
@@ -134,6 +145,11 @@ const AjoutDecompte = () => {
     navigate('/decomptes');
   };
 
+  const filteredMarches = marches.filter(m =>
+  m.numOperation.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, margin: "auto" }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -145,6 +161,33 @@ const AjoutDecompte = () => {
       <Divider sx={{ my: 2 }} />
 
       <Box component="form" onSubmit={handleSubmit}>
+        <Box sx={{ bgcolor: "info.light", p: 2, borderRadius: 1, mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
+            Sélection du marché
+          </Typography>
+        </Box>
+
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sx={{width: "31%",}}>
+<Button
+  variant="outlined"
+  onClick={() => setOpenDialog(true)}
+  fullWidth
+>
+  Choisir un marché
+</Button>
+
+{decompte.marche.id && (
+  <Typography variant="body2" sx={{ mt: 1 }}>
+    Marché sélectionné : {
+      marches.find(m => m.id === decompte.marche.id)?.numOperation || "Non défini"
+    }
+  </Typography>
+)}
+
+          </Grid>
+        </Grid>
+
         {/* Section Informations de base */}
         <Box sx={{ bgcolor: "primary.light", p: 2, borderRadius: 1, mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
@@ -192,7 +235,7 @@ const AjoutDecompte = () => {
             />
           </Grid>
 
-          <Grid item xs={6} md={3}>
+          {/* <Grid item xs={6} md={3}>
             <FormControl fullWidth>
               <InputLabel>Statut</InputLabel>
               <Select
@@ -208,7 +251,7 @@ const AjoutDecompte = () => {
                 ))}
               </Select>
             </FormControl>
-          </Grid>
+          </Grid> */}
         </Grid>
 
         {/* Section Dates importantes */}
@@ -254,42 +297,7 @@ const AjoutDecompte = () => {
         </Grid>
 
         {/* Section Marché */}
-        <Box sx={{ bgcolor: "info.light", p: 2, borderRadius: 1, mb: 3 }}>
-          <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
-            Sélection du marché
-          </Typography>
-        </Box>
 
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sx={{width: "31%",}}>
-            <Autocomplete
-              options={marches}
-              loading={loadingMarches}
-              getOptionLabel={(option) => `${option.numOperation} - ${option.objet}`}
-              value={marches.find(m => m.id === decompte.marche.id) || null}
-              onChange={handleMarcheChange}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Rechercher un marché"
-                  error={!!errors.marche}
-                  helperText={errors.marche}
-                  required
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {loadingMarches ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-          </Grid>
-        </Grid>
 
         {/* Section Rejet */}
         {decompte.statut === 'REJETE' && (
@@ -339,6 +347,63 @@ const AjoutDecompte = () => {
           </Button>
         </Box>
       </Box>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+  <DialogTitle>Choisir un marché</DialogTitle>
+  <Box mt={0} />
+  <DialogContent>
+    <TextField
+      fullWidth
+      label="Filtrer par Numéro d'opération"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      sx={{ mb: 2 }}
+    />
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell>Numéro</TableCell>
+          <TableCell>Objet</TableCell>
+          <TableCell>Fournisseur</TableCell>
+          <TableCell>Montant</TableCell>
+          <TableCell>Entité</TableCell>
+          <TableCell>Sélection</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {filteredMarches.map((marche) => (
+          <TableRow key={marche.id}>
+            <TableCell>{marche.numOperation}</TableCell>
+            <TableCell>{marche.objet}</TableCell>
+            <TableCell>{marche.fournisseur}</TableCell>
+            <TableCell>{marche.montant}</TableCell>
+            <TableCell>{marche.entite}</TableCell>
+            <TableCell>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => {
+                  setDecompte(prev => ({
+                    ...prev,
+                    marche: { id: marche.id }
+                  }));
+                  setOpenDialog(false);
+                }}
+              >
+                Sélectionner
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenDialog(false)} color="error">
+      Fermer
+    </Button>
+  </DialogActions>
+</Dialog>
+
     </Paper>
   );
 };

@@ -428,7 +428,7 @@ const handleEntiteChange = (e) => {
                 </Box>
               }
             />
-            {formData.urgent && (
+
               <TextField
                 fullWidth
                 label="Délais (jours)"
@@ -445,7 +445,7 @@ const handleEntiteChange = (e) => {
                 }}
                 sx={{ mt: 1, "& .MuiInputBase-root": { height: "56px" } }}
               />
-            )}
+
           </Grid>
         </Grid>
 

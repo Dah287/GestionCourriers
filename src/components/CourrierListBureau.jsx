@@ -40,13 +40,16 @@ import {
   Mail,
   AccountBalance,
   Notifications,
+  Logout,
   Dashboard,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';  // ton api custom
+import useAutoLogout from './Authentification/useAutoLogout';
 
 const CourrierListBureau = () => {
+    useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [courriers, setCourriers] = useState([]);
   const [page, setPage] = useState(0);
@@ -63,12 +66,20 @@ const CourrierListBureau = () => {
 
   const open = Boolean(anchorEl);
 
+
+  //
+
+  const token = localStorage.getItem('token');
+const idUser = localStorage.getItem('id_user');
+const role = localStorage.getItem('role');
+const service = localStorage.getItem('service');
+const bureau = localStorage.getItem('bureau');
   // Charger les données depuis l'API
   const fetchCourriers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await courrierApi.getCourriersParEntite2("Bureau A");
+      const response = await courrierApi.getCourriersParEntite2(bureau);
       setCourriers(response.data);
     } catch (err) {
       setError(err.message || "Failed to load courriers.");
@@ -106,7 +117,7 @@ const CourrierListBureau = () => {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const response = await courrierApi.getCourriersParEntite2("Bureau A");
+      const response = await courrierApi.getCourriersParEntite2(bureau);
       setCourriers(response.data);
     } catch (err) {
       setError(err.message);
@@ -248,6 +259,13 @@ const getStatusColor = (status) => {
       handleMenuClose();
     }
   };
+  const handleLogout = () => {
+  // Vider tout le localStorage
+  localStorage.clear();
+
+  // Rediriger vers la page de login
+  navigate("/login");
+};
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
   if (error) return <Typography color="error">Erreur: {error}</Typography>;
@@ -268,30 +286,67 @@ const getStatusColor = (status) => {
               <Notifications />
             </Badge>
           </IconButton>
+                            <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                    Déconnecter
+                  </Button>
         </Toolbar>
       </AppBar>
 
-      <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
         <Container maxWidth="xl">
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            aria-label="navigation tabs"
-            sx={{
-              "& .MuiTab-root": {
-                minHeight: 64,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Tab icon={<Dashboard />} label="Tableau de Bord" iconPosition="start" sx={{ mr: 2 }} />
-            <Tab icon={<Mail />} label="Gestion Courriers" iconPosition="start" sx={{ mr: 2 }} />
-            <Tab icon={<AccountBalance />} label="Suivi Décomptes" iconPosition="start" />
-          </Tabs>
+    <Tabs
+      value={activeTab}
+      onChange={(_, newValue) => {
+        if (newValue === 0) navigate('/courriers/Bureau');
+        if (newValue === 2) navigate('/decomptes/bcp');
+        setActiveTab(newValue);
+      }}
+      aria-label="navigation tabs"
+      sx={{
+        "& .MuiTab-root": {
+          minHeight: 64,
+          textTransform: "none",
+          fontSize: "1rem",
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Tab 
+        icon={<Dashboard />} 
+        label="Tableau de Bord" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<Mail />} 
+        label="Gestion Courriers" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<AccountBalance />} 
+        label="Suivi Décomptes" 
+        iconPosition="start" 
+        sx={{
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '80%',
+            height: 3,
+            bgcolor: 'primary.main',
+            borderRadius: '3px 3px 0 0',
+            opacity: activeTab === 2 ? 1 : 0,
+            transition: 'opacity 0.3s'
+          }
+        }}
+      />
+    </Tabs>
         </Container>
-      </Paper>
+      </Paper> */}
 
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

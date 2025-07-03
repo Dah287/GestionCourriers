@@ -33,15 +33,15 @@ import {
   Mail,
   AccountBalance,
   Notifications,
-  Logout ,
+  Logout,
   Dashboard
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';
 import useAutoLogout from './Authentification/useAutoLogout';
 
-const DecompteList = () => {
-      useAutoLogout(); // ✅ Doit être au tout début du composant
+const DecompteServiceSCF = () => {
+        useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
@@ -59,7 +59,7 @@ const DecompteList = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await courrierApi.getAllDecomptes();
+      const response = await courrierApi.getAllDecomptesSCF();
       setDecomptes(response.data);
     } catch (err) {
       console.error("Error fetching decomptes:", err);
@@ -127,7 +127,7 @@ const DecompteList = () => {
     }
   };
 
-const handleTransferToSCF = async () => {
+const handleTransferToBCP = async () => {
   if (!selectedRow) return;
   
   // Ajout de la confirmation
@@ -138,10 +138,7 @@ const handleTransferToSCF = async () => {
   if (!isConfirmed) return;
 
   try {
-    await courrierApi.updateStatut(selectedRow.id,{
-      statut: "SERVICE_SCF",
-     date_envoi_scf: new Date().toISOString().split('T')[0], // "2025-06-01"
-    });
+    await courrierApi.updateDateReceptionBCP(selectedRow.id);
     
     // Message de succès plus informatif
     alert(`Le courrier ${selectedRow.numeroOrdre} a été transféré au service avec succès.`);
@@ -153,7 +150,6 @@ const handleTransferToSCF = async () => {
     alert(`Échec du transfert du courrier ${selectedRow.numeroOrdre} au service.`);
   }
 };
-
 
 const getStatusLabel = (status) => {
   switch (status) {
@@ -207,7 +203,6 @@ const getStatusColor = (status) => {
 };
 
 
-
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -221,7 +216,7 @@ const getStatusColor = (status) => {
     }
   };
 
-const handleLogout = () => {
+  const handleLogout = () => {
   // Vider tout le localStorage
   localStorage.clear();
 
@@ -229,12 +224,28 @@ const handleLogout = () => {
   navigate("/login1");
 };
 
+
+  const handleUpdateStatut = async (row, Newstatut) => {
+    try {
+      await courrierApi.updateStatut(row.id, {
+        statut: Newstatut,
+        date_envoi_scf_dpf: new Date().toISOString().split('T')[0], // "2025-06-01"
+      });
+      alert(`Statut mis à jour vers ${Newstatut}`);
+      await fetchDecomptes();
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour du statut:", err);
+      alert("Erreur lors de la mise à jour du statut.");
+    }
+  };
+
+
   if (loading) return <Typography>Chargement en cours...</Typography>;
   if (error) return <Typography color="error">Erreur: {error}</Typography>;
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor: '#2e7d32', boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
@@ -248,7 +259,7 @@ const handleLogout = () => {
               <Notifications />
             </Badge>
           </IconButton>
-                  <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                            <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
                     Déconnecter
                   </Button>
         </Toolbar>
@@ -256,42 +267,57 @@ const handleLogout = () => {
 
       {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
         <Container maxWidth="xl">
-          <Tabs
-            value={activeTab}
-            onChange={(_, newValue) => {
-              if (newValue === 1) navigate('/courriers');
-              if (newValue === 0) navigate('/dashbord');
-              setActiveTab(newValue);
-            }}
-            aria-label="navigation tabs"
-            sx={{
-              "& .MuiTab-root": {
-                minHeight: 64,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Tab 
-              icon={<Dashboard />} 
-              label="Tableau de Bord" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-            <Tab 
-              icon={<Mail />} 
-              label="Gestion Courriers" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-            <Tab 
-              icon={<AccountBalance />} 
-              label="Suivi Décomptes" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-          </Tabs>
+    <Tabs
+      value={activeTab}
+      onChange={(_, newValue) => {
+        if (newValue === 0) navigate('/decomptes/scf');
+        if (newValue === 1) navigate('/courriers/Service');
+        setActiveTab(newValue);
+      }}
+      aria-label="navigation tabs"
+      sx={{
+        "& .MuiTab-root": {
+          minHeight: 64,
+          textTransform: "none",
+          fontSize: "1rem",
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Tab 
+        icon={<Dashboard />} 
+        label="Tableau de Bord" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<Mail />} 
+        label="Gestion Courriers" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<AccountBalance />} 
+        label="Suivi Décomptes" 
+        iconPosition="start" 
+        sx={{
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '80%',
+            height: 3,
+            bgcolor: 'primary.main',
+            borderRadius: '3px 3px 0 0',
+            opacity: activeTab === 2 ? 1 : 0,
+            transition: 'opacity 0.3s'
+          }
+        }}
+      />
+    </Tabs>
         </Container>
       </Paper> */}
       
@@ -393,7 +419,6 @@ const handleLogout = () => {
                         label={getStatusLabel(row.statut)}
                         size="small"
                         color={getStatusColor(row.statut)}
-                       onClick={() => { }} // Add this line
                       />
                     </TableCell>
                      <TableCell>{row.motif}</TableCell>
@@ -437,9 +462,28 @@ const handleLogout = () => {
             Voir les détails
           </MenuItem>
           <MenuItem onClick={handleEditDecompte}>Modifier</MenuItem>
-          <Divider />
-          <MenuItem onClick={handleTransferToSCF}>Transférer au SCF</MenuItem>
-          <Divider />
+<Divider />
+{selectedRow?.statut === "SERVICE_SCF" && (
+  <>
+    <MenuItem onClick={handleTransferToBCP}>Transférer au BCP</MenuItem>
+    <Divider />
+  </>
+)}
+
+{(selectedRow?.statut === "REJETE_ATP_S" || selectedRow?.statut === "REJETE_BCP") && (
+  <>
+    <MenuItem onClick={() => {
+      const newStatut = selectedRow.statut === "REJETE_ATP_S" ? "REJETE_ATP_E" : "REJETE_BCP_E";
+      handleUpdateStatut(selectedRow, newStatut);
+      handleMenuClose();
+    }}>
+      Transférer à l'entité concernée
+    </MenuItem>
+    <Divider />
+  </>
+)}
+
+
           <MenuItem onClick={handleDeleteDecompte} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
         </Menu>
       </Box>
@@ -447,4 +491,4 @@ const handleLogout = () => {
   );
 };
 
-export default DecompteList;
+export default DecompteServiceSCF;

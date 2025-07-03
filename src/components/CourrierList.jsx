@@ -32,13 +32,16 @@ import {
   Mail,
   AccountBalance,
   Notifications,
+  Logout,
   Dashboard,
   Warning as WarningIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';
+import useAutoLogout from './Authentification/useAutoLogout';
 
 const CourrierList = () => {
+  useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [courriers, setCourriers] = useState([]);
   const [page, setPage] = useState(0);
@@ -202,22 +205,23 @@ const handleMarkAsTreated = async () => {
     alert(`Échec du marquage du courrier ${selectedRow.numeroOrdre} comme traité.`);
   }
 };
-  const getStatusLabel = (status) => {
+const getStatusLabel = (status) => {
   switch (status) {
     case 'RECU_SERVICE':
-      return 'Réception service en cours';
+      return 'Envoyé au service';
     case 'RECU_BUREAU':
-      return 'Réception bureau en cours';
+      return 'Envoyé au bureau';
     case 'TRAITE':
-      return 'Traité';
+      return 'Courrier traité';
     case 'REJETE':
       return 'Rejeté';
     case 'EN_ATTENTE':
-      return 'En attente';
+      return 'En attente d\'envoi';
     default:
       return status;
   }
 };
+
 const getStatusColor = (status) => {
   switch (status) {
     case 'TRAITE':
@@ -236,6 +240,7 @@ const getStatusColor = (status) => {
 };
 
 
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -248,10 +253,19 @@ const getStatusColor = (status) => {
       handleMenuClose(); // Close the menu after navigation
     }
   };
+  const handleLogout = () => {
+  // Vider tout le localStorage
+  localStorage.clear();
+
+  // Rediriger vers la page de login
+  navigate("/login");
+};
 
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
   if (error) return <Typography color="error">Erreur: {error}</Typography>;
+
+
 
   return (
     <Box>
@@ -269,10 +283,13 @@ const getStatusColor = (status) => {
               <Notifications />
             </Badge>
           </IconButton>
+                            <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                    Déconnecter
+                  </Button>
         </Toolbar>
       </AppBar>
 
-<Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+{/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
   <Container maxWidth="xl">
     <Tabs
       value={activeTab}
@@ -326,7 +343,7 @@ const getStatusColor = (status) => {
       />
     </Tabs>
   </Container>
-</Paper>
+</Paper> */}
 
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -401,6 +418,7 @@ const getStatusColor = (status) => {
                   <TableCell>Date Envoi</TableCell>
                    <TableCell>Date Reception Service</TableCell>
                     <TableCell>Date Reception Bureau</TableCell>
+                     <TableCell>Date Traitement</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -429,6 +447,7 @@ const getStatusColor = (status) => {
                     <TableCell>{formatDate(row.dateEnvoi)}</TableCell>
                       <TableCell>{formatDate(row.dateReceptionService)}</TableCell>
                         <TableCell>{formatDate(row.dateReceptionBureau)}</TableCell>
+                        <TableCell>{formatDate(row.dateTraitement)}</TableCell>
                     <TableCell align="right">
                       <IconButton
                         size="small"

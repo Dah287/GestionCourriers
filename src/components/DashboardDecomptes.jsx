@@ -34,8 +34,10 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import useAutoLogout from './Authentification/useAutoLogout';
 
 const DashboardDecomptes = () => {
+      useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ const DashboardDecomptes = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://192.168.1.141:8080/api/decomptes');
+        const response = await axios.get('http://192.168.1.44:8080/api/decomptes');
         setDecomptes(response.data);
       } catch (err) {
         setError(err.message);

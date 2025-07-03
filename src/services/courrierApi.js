@@ -1,9 +1,9 @@
 // src/services/courrierApi.js
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.141:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
-const API_URL2 = 'http://192.168.1.141:8080/api/decomptes'; 
-const API_URL3 = 'http://192.168.1.141:8080/api/marches'; 
+const API_URL = 'http://192.168.1.44:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
+const API_URL2 = 'http://192.168.1.44:8080/api/decomptes'; 
+const API_URL3 = 'http://192.168.1.44:8080/api/marches'; 
 const getCourrier = (id) => {
   return axios.get(`${API_URL}/${id}`);
 };
@@ -25,6 +25,7 @@ const getAllCourriers = () => {
     return axios.get(API_URL);
 }
  const getCourriersParEntite = (entite) => {
+  console.log("service-->",entite)
   return axios.get(`${API_URL}/recu-service/par-entite`, {
     params: { entite },
   });
@@ -73,6 +74,9 @@ const getAllDecomptesBCP = () => {
 };
 const getAllDecomptesATP = () => {
   return axios.get(`${API_URL2}/all-atp`);
+};
+const getAllDecomptesSCF = () => {
+  return axios.get(`${API_URL2}/all-scf`);
 };
 
 const getAllMarches = () => {
@@ -142,6 +146,12 @@ const getMontantTotalByAnnee = (annee) => {
   });
 };
 
+// Ajoutez cette méthode avec les autres méthodes de décompte
+const updateStatut = (id, data) => {
+  console.log("data :",data)
+  return axios.put(`${API_URL2}/${id}/statut`, data);
+};
+
 const courrierApi = {
   getCourrier,
   createCourrier,
@@ -179,7 +189,11 @@ const courrierApi = {
   getAllDecomptesATP,
   getAllDecomptesBCP,
   updateDateReceptionRBCP,
-  updateDateReceptionRATP
+  updateDateReceptionRATP,
+  //
+  updateStatut,
+  //
+  getAllDecomptesSCF
 };
 
 export default courrierApi;

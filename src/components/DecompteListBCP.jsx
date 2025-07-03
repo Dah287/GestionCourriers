@@ -22,7 +22,12 @@ import {
   Tabs,
   Tab,
   Container,
-  Button
+  Button,
+    Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
@@ -33,12 +38,15 @@ import {
   Mail,
   AccountBalance,
   Notifications,
+  Logout,
   Dashboard
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';
+import useAutoLogout from './Authentification/useAutoLogout';
 
 const DecompteListBCP = () => {
+        useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
   const [decomptesBCP, setDecomptesBCP] = useState([]);
@@ -54,8 +62,63 @@ const [selectedRowATP, setSelectedRowATP] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  
+
 const openBCP = Boolean(anchorElBCP);
 const openATP = Boolean(anchorElATP);
+
+
+// En haut de ton component :
+const [openMotifDialog, setOpenMotifDialog] = useState(false);
+const [motifRejet, setMotifRejet] = useState("");
+const [targetRow, setTargetRow] = useState(null);
+const [targetStatut, setTargetStatut] = useState("");
+
+// Méthode pour ouvrir la popup motif
+const handleOpenMotifDialog = (row, statut) => {
+  setTargetRow(row);
+  setTargetStatut(statut);
+  setMotifRejet("");
+  setOpenMotifDialog(true);
+};
+
+const handleCloseMotifDialog = () => {
+  setOpenMotifDialog(false);
+};
+
+// Appel API pour mise à jour statut et motif
+const updateStatutWithMotif = async () => {
+  if (!targetRow || !targetStatut) return;
+
+  try {
+    console.log("statut :",targetStatut)
+    console.log("motifRejet :",motifRejet)
+    await courrierApi.updateStatut(targetRow.id, {
+      statut: targetStatut,
+      motif: motifRejet
+    });
+    alert("Statut mis à jour avec succès.");
+    setOpenMotifDialog(false);
+    await fetchDecomptes();
+  } catch (error) {
+    alert("Erreur lors de la mise à jour du statut.");
+    console.error(error);
+  }
+};
+
+const handleUpdateStatut = async (row, Newstatut) => {
+  try {
+    await courrierApi.updateStatut(row.id, {
+      statut: Newstatut
+    });
+    alert(`Statut mis à jour vers ${Newstatut}`);
+    await fetchDecomptes();
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour du statut:", err);
+    alert("Erreur lors de la mise à jour du statut.");
+  }
+};
+
 
   // Charger les données depuis l'API
   const fetchDecomptes = async () => {
@@ -203,35 +266,53 @@ const handleTransferToRBCP = async (row) => {
 const getStatusLabel = (status) => {
   switch (status) {
     case 'EN_ATTENTE':
-      return 'En attente de validation';
+      return 'En attente de validation DPF';
+    case 'SERVICE_SCF':
+      return 'Envoyé à SCF';
     case 'BCP':
-      return 'Transmis au BCP';
+      return 'Envoyé à BCP';
+    case 'ATP':
+      return 'Envoyé à ATP';
     case 'REJETE_BCP':
-      return 'Rejeté par le BCP';
+      return 'Rejeté par le BCP / SCF';
     case 'REJETE_ATP':
-      return 'Rejeté par l\'ATP';
+      return 'Rejeté par l\'ATP / BCP';
+    case 'REJETE_ATP_S':
+      return 'Rejeté par le ATP / SCF';
+    case 'REJETE_BCP_E':
+      return 'Rejeté par le BCP / DPF';
+    case 'REJETE_ATP_E':
+      return 'Rejeté par le ATP / DPF';
     case 'ACCEPTE':
       return 'Accepté et payé';
     default:
-      // Capitalise la première lettre et met le reste en minuscules
       return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }
 };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'PAYE':
-        return 'success';
-      case 'EN_ATTENTE':
-        return 'warning';
-      case 'REJETE':
-        return 'error';
-      case 'EN_COURS':
-        return 'info';
-      default:
-        return 'default';
-    }
-  };
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'EN_ATTENTE':
+      return 'warning'; // En attente
+    case 'SERVICE_SCF':
+      return 'info'; // En cours SCF
+    case 'BCP':
+      return 'info'; // En cours BCP
+    case 'ATP':
+      return 'info'; // En cours ATP
+    case 'REJETE_BCP':
+    case 'REJETE_ATP':
+    case 'REJETE_ATP_S':
+    case 'REJETE_BCP_E':
+    case 'REJETE_ATP_E':
+      return 'error'; // Tous les rejets
+    case 'ACCEPTE':
+      return 'success'; // Validé
+    default:
+      return 'default';
+  }
+};
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -245,13 +326,21 @@ const handleEditDecompte = (row) => {
   }
 };
 
+const handleLogout = () => {
+  // Vider tout le localStorage
+  localStorage.clear();
+
+  // Rediriger vers la page de login
+  navigate("/login1");
+};
+
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
   if (error) return <Typography color="error">Erreur: {error}</Typography>;
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor: "primary.main", boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
@@ -265,49 +354,67 @@ const handleEditDecompte = (row) => {
               <Notifications />
             </Badge>
           </IconButton>
+                            <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                    Déconnecter
+                  </Button>
         </Toolbar>
       </AppBar>
 
-      <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
         <Container maxWidth="xl">
-          <Tabs
-            value={activeTab}
-            onChange={(_, newValue) => {
-              if (newValue === 1) navigate('/courriers');
-              if (newValue === 0) navigate('/dashbord');
-              setActiveTab(newValue);
-            }}
-            aria-label="navigation tabs"
-            sx={{
-              "& .MuiTab-root": {
-                minHeight: 64,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Tab 
-              icon={<Dashboard />} 
-              label="Tableau de Bord" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-            <Tab 
-              icon={<Mail />} 
-              label="Gestion Courriers" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-            <Tab 
-              icon={<AccountBalance />} 
-              label="Suivi Décomptes" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
-          </Tabs>
+    <Tabs
+      value={activeTab}
+      onChange={(_, newValue) => {
+        if (newValue === 0) navigate('/decomptes/bcp');
+        if (newValue === 1) navigate('/courriers/Bureau');
+        setActiveTab(newValue);
+      }}
+      aria-label="navigation tabs"
+      sx={{
+        "& .MuiTab-root": {
+          minHeight: 64,
+          textTransform: "none",
+          fontSize: "1rem",
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Tab 
+        icon={<Dashboard />} 
+        label="Tableau de Bord" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<Mail />} 
+        label="Gestion Courriers" 
+        iconPosition="start" 
+        sx={{ mr: 2 }} 
+      />
+      <Tab 
+        icon={<AccountBalance />} 
+        label="Suivi Décomptes" 
+        iconPosition="start" 
+        sx={{
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '80%',
+            height: 3,
+            bgcolor: 'primary.main',
+            borderRadius: '3px 3px 0 0',
+            opacity: activeTab === 2 ? 1 : 0,
+            transition: 'opacity 0.3s'
+          }
+        }}
+      />
+    </Tabs>
         </Container>
-      </Paper>
+      </Paper> */}
       
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -326,6 +433,7 @@ const handleEditDecompte = (row) => {
               </IconButton>
             </Tooltip>
             <Button 
+            sx={{ bgcolor:'#2e7d32'}}
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleAddDecompte}
@@ -415,15 +523,35 @@ const handleEditDecompte = (row) => {
   <MenuItem onClick={() => { handleViewDetails(selectedRowBCP?.id); handleMenuCloseBCP(); }}>
     Voir les détails
   </MenuItem>
-  <MenuItem onClick={() => { handleEditDecompte(selectedRowBCP); handleMenuCloseBCP(); }}>Modifier</MenuItem>
+  <MenuItem onClick={() => { handleEditDecompte(selectedRowBCP); handleMenuCloseBCP(); }}>
+    Modifier
+  </MenuItem>
   <Divider />
-  <MenuItem onClick={() => { handleTransferToATP(selectedRowBCP); handleMenuCloseBCP(); }}>Transférer au ATP</MenuItem>
-    <MenuItem onClick={() => { handleTransferToRBCP(selectedRowBCP); handleMenuCloseBCP(); }}>Rejeté par BCP</MenuItem>
+
+  {selectedRowBCP?.statut === "REJETE_ATP" ? (
+    <MenuItem onClick={() => {
+      handleUpdateStatut(selectedRowBCP, "REJETE_ATP_S");
+      handleMenuCloseBCP();
+    }}>
+      Transférer au Service SCF
+    </MenuItem>
+  ) : (
+    <>
+      <MenuItem onClick={() => { handleTransferToATP(selectedRowBCP); handleMenuCloseBCP(); }}>
+        Transférer au ATP
+      </MenuItem>
+      <MenuItem onClick={() => { handleOpenMotifDialog(selectedRowBCP, "REJETE_BCP"); handleMenuCloseBCP(); }}>
+        Rejeté par BCP
+      </MenuItem>
+    </>
+  )}
+
   <Divider />
   <MenuItem onClick={() => { handleDeleteDecompte(selectedRowBCP); handleMenuCloseBCP(); }} sx={{ color: 'error.main' }}>
     Supprimer
   </MenuItem>
 </Menu>
+
 
       </Box>
             <Box sx={{ p: 3 }}>
@@ -528,8 +656,9 @@ const handleEditDecompte = (row) => {
   </MenuItem>
   <MenuItem onClick={() => { handleEditDecompte(selectedRowATP); handleMenuCloseATP(); }}>Modifier</MenuItem>
   <Divider />
-  <MenuItem onClick={() => { handleTransferToATP(selectedRowATP); handleMenuCloseATP(); }}>Accepté et payé</MenuItem>
-  <MenuItem onClick={() => { handleTransferToRATP(selectedRowATP); handleMenuCloseATP(); }}>Rejeté par l'ATP</MenuItem>
+  <MenuItem onClick={() => {  handleUpdateStatut(selectedRowATP, "ACCEPTE");; handleMenuCloseATP(); }}>Accepté et payé</MenuItem>
+  <MenuItem onClick={() => { handleOpenMotifDialog(selectedRowATP, "REJETE_ATP"); handleMenuCloseATP(); }}>Rejeté par l'ATP</MenuItem>
+
   <Divider />
   <MenuItem onClick={() => { handleDeleteDecompte(selectedRowATP); handleMenuCloseATP(); }} sx={{ color: 'error.main' }}>
     Supprimer
@@ -537,6 +666,24 @@ const handleEditDecompte = (row) => {
 </Menu>
 
       </Box>
+
+<Dialog open={openMotifDialog} onClose={handleCloseMotifDialog}>
+  <DialogTitle>Motif du rejet</DialogTitle>
+  <DialogContent>
+    <TextField
+      autoFocus
+      margin="dense"
+      label="Motif"
+      fullWidth
+      value={motifRejet}
+      onChange={(e) => setMotifRejet(e.target.value)}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseMotifDialog}>Annuler</Button>
+    <Button onClick={updateStatutWithMotif} variant="contained">Valider</Button>
+  </DialogActions>
+</Dialog>
     </Box>
   );
 };
