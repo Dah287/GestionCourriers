@@ -82,6 +82,14 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itext7-core</artifactId>
+			<version>8.0.2</version> <!-- ou la dernière version stable -->
+			<type>pom</type>
+		</dependency>
+
 	</dependencies>
 
 	<build>
