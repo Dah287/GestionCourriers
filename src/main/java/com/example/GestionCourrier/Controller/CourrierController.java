@@ -50,18 +50,50 @@ public class CourrierController {
 
     @PutMapping("update-status-traite/{id}")
     public ResponseEntity<Courrier> updateStatusTraite(@PathVariable Long id) {
-        Courrier Courrier = courrierRepository.findById(id).orElseThrow();
-        Courrier.setStatus(Status.TRAITE);
-        Courrier.setDateTraitement(LocalDate.now()); // ✅ Ajouter la date d'envoi actuelle
-        return ResponseEntity.ok(courrierRepository.save(Courrier));
+        Courrier courrier = courrierRepository.findById(id).orElseThrow();
+
+        Status ancienStatut = courrier.getStatus();
+        Status nouveauStatut = Status.TRAITE;
+
+        courrier.setStatus(nouveauStatut);
+
+        LocalDate now = LocalDate.now();
+
+        if (ancienStatut == Status.RECU_SERVICE) {
+            courrier.setDateReceptionService(now);
+            courrier.setDateTraitement(now);
+        } else if (ancienStatut == Status.RECU_BUREAU) {
+            courrier.setDateReceptionBureau(now);
+            courrier.setDateTraitement(now);
+        } else if (ancienStatut == Status.EN_ATTENTE) {
+            //courrier.setDateReceptionBureau(now);
+            courrier.setDateTraitement(now);
+        }
+
+        else {
+            // Si on ne connaît pas l'ancien statut, on met seulement la date de traitement
+            courrier.setDateTraitement(now);
+        }
+
+        return ResponseEntity.ok(courrierRepository.save(courrier));
     }
+
     @PutMapping("update-status-service/{id}")
     public ResponseEntity<Courrier> updateStatusService(@PathVariable Long id) {
-        Courrier Courrier = courrierRepository.findById(id).orElseThrow();
-        Courrier.setStatus(Status.RECU_SERVICE);
-        Courrier.setDateEnvoi(LocalDate.now()); // ✅ Ajouter la date d'envoi actuelle
-        return ResponseEntity.ok(courrierRepository.save(Courrier));
+        Courrier courrier = courrierRepository.findById(id).orElseThrow();
+
+        Status ancienStatut = courrier.getStatus();
+        Status nouveauStatut = Status.RECU_SERVICE;
+
+        courrier.setStatus(nouveauStatut);
+
+        if (ancienStatut == Status.EN_ATTENTE) {
+            courrier.setDateEnvoi(LocalDate.now());
+        }
+
+        return ResponseEntity.ok(courrierRepository.save(courrier));
     }
+
 
     @PutMapping("update-status-bureau/{id}")
     public ResponseEntity<Courrier> updateStatusBureau(
@@ -70,11 +102,20 @@ public class CourrierController {
 
         Courrier courrier = courrierRepository.findById(id).orElseThrow();
 
+        Status ancienStatut = courrier.getStatus();
+        Status nouveauStatut = Status.RECU_BUREAU;
+
         courrier.setBureauRecepteur(bureau);
-        courrier.setStatus(Status.RECU_BUREAU);
-        courrier.setDateReceptionService(LocalDate.now()); // ✅ Ajouter la date d'envoi actuelle
+        courrier.setStatus(nouveauStatut);
+
+        if (ancienStatut == Status.RECU_SERVICE) {
+            courrier.setDateReceptionService(LocalDate.now());
+            //courrier.setDateTraitement(LocalDate.now());
+        }
+
         return ResponseEntity.ok(courrierRepository.save(courrier));
     }
+
 
 
     @GetMapping
