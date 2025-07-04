@@ -47,7 +47,7 @@ const DashboardDecomptes = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://192.168.1.44:8080/api/decomptes');
+        const response = await axios.get('http://192.168.1.59:8080/api/decomptes');
         setDecomptes(response.data);
       } catch (err) {
         setError(err.message);

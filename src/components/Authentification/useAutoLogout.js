@@ -11,13 +11,22 @@ const useAutoLogout = () => {
   useEffect(() => {
     let timer;
 
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        localStorage.clear();
-        navigate('/'); // ✅ Remplace history.push('/')
-      }, 1 * 60 * 1000); // 10 minutes
-    };
+const resetTimer = () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    const login = localStorage.getItem('login');
+    if (login === "login") {
+      // login correct => rester sur la page, gérer couleur verte ici
+           localStorage.clear();
+      navigate('/'); 
+      // Par exemple, mettre une classe css ou un état pour afficher en vert
+    } else {
+      // login absent ou différent => redirection vers /login1
+      localStorage.clear();
+      navigate('/login1'); // redirection vers /login1
+    }
+  }, 10 * 60 * 1000); // 10 minutes
+};
 
     const events = ['mousemove', 'keydown', 'click', 'scroll'];
     events.forEach(event => window.addEventListener(event, resetTimer));

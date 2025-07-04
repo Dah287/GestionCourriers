@@ -26,7 +26,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://192.168.1.44:8080/auth/login', {
+      const response = await fetch('http://192.168.1.59:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -48,6 +48,7 @@ const LoginPage = () => {
       localStorage.setItem('role', data.role);
       localStorage.setItem('service', data.service);
       localStorage.setItem('bureau', data.bureau);
+        localStorage.setItem('login', "login");
 
       login(); // ➤ Marque comme authentifié
 

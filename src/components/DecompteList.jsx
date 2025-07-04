@@ -60,6 +60,7 @@ const DecompteList = () => {
     setError(null);
     try {
       const response = await courrierApi.getAllDecomptes();
+      console.log("response.data :",response.data)
       setDecomptes(response.data);
     } catch (err) {
       console.error("Error fetching decomptes:", err);
@@ -220,6 +221,24 @@ const getStatusColor = (status) => {
       handleMenuClose();
     }
   };
+
+  const handleDownloadDecomptePdf = async (id) => {
+  try {
+    const response = await courrierApi.downloadDecomptePdf(id);
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `decompte_${id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement du PDF :", error);
+  }
+};
+
 
 const handleLogout = () => {
   // Vider tout le localStorage
@@ -441,6 +460,16 @@ const handleLogout = () => {
           <MenuItem onClick={handleTransferToSCF}>Transférer au SCF</MenuItem>
           <Divider />
           <MenuItem onClick={handleDeleteDecompte} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
+            {/* ✅ Nouveau MenuItem pour téléchargement PDF */}
+          <Divider />
+          <MenuItem
+            onClick={() => {
+              handleDownloadDecomptePdf(selectedRow?.id);
+              handleMenuClose();
+            }}
+          >
+            Télécharger PDF
+          </MenuItem>
         </Menu>
       </Box>
     </Box>

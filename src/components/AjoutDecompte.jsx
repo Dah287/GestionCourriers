@@ -151,7 +151,7 @@ const [searchTerm, setSearchTerm] = useState('');
 
 
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, margin: "auto" }}>
+    <Paper elevation={3} sx={{ p: 3, maxWidth: 1100, margin: "auto" , mt: 8, }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <AccountBalance sx={{ mr: 2, color: "primary.main", fontSize: 32 }} />
         <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
@@ -384,10 +384,12 @@ const [searchTerm, setSearchTerm] = useState('');
                 onClick={() => {
                   setDecompte(prev => ({
                     ...prev,
-                    marche: { id: marche.id }
+                    marche: { id: marche.id },
+                    numDecompte: marche.numOperation // Auto-remplissage du champ Numéro de décompte
                   }));
                   setOpenDialog(false);
                 }}
+
               >
                 Sélectionner
               </Button>

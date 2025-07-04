@@ -26,7 +26,7 @@ const LoginPage1 = () => {
     setError('');
 
     try {
-      const response = await fetch('http://192.168.1.44:8080/auth/login', {
+      const response = await fetch('http://192.168.1.59:8080/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ matricule, password }),
@@ -41,8 +41,9 @@ const LoginPage1 = () => {
       localStorage.setItem('role', data.role);
       localStorage.setItem('service', data.service);
       localStorage.setItem('bureau', data.bureau);
+      localStorage.setItem('login', "login1");
       login(); // ➤ Marque comme authentifié
-      
+
       switch (data.role) {
         case 'ADMIN': navigate('/En Cours'); break;
         case 'SECRETARIAT': navigate('/decomptes'); break;
@@ -88,7 +89,7 @@ const LoginPage1 = () => {
             Connexion
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-            Accédez à votre application de gestion des courriers
+            Accédez à votre application de Gestion des Décomptes
           </Typography>
         </Box>
 

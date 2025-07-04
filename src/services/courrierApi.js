@@ -1,9 +1,9 @@
 // src/services/courrierApi.js
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.44:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
-const API_URL2 = 'http://192.168.1.44:8080/api/decomptes'; 
-const API_URL3 = 'http://192.168.1.44:8080/api/marches'; 
+const API_URL = 'http://192.168.1.59:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
+const API_URL2 = 'http://192.168.1.59:8080/api/decomptes'; 
+const API_URL3 = 'http://192.168.1.59:8080/api/marches'; 
 const getCourrier = (id) => {
   return axios.get(`${API_URL}/${id}`);
 };
@@ -97,6 +97,13 @@ const updateDecompte = (id, decompteData) => {
 
 const deleteDecompte = (id) => {
   return axios.delete(`${API_URL2}/${id}`);
+};
+
+//PDF Rapport
+const downloadDecomptePdf = (id) => {
+  return axios.get(`${API_URL2}/${id}/export/pdf`, {
+    responseType: 'blob'
+  });
 };
 
 // Méthodes spécifiques aux décomptes
@@ -193,7 +200,10 @@ const courrierApi = {
   //
   updateStatut,
   //
-  getAllDecomptesSCF
+  getAllDecomptesSCF,
+
+  //
+  downloadDecomptePdf
 };
 
 export default courrierApi;
