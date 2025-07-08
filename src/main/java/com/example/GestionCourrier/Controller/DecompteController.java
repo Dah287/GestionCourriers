@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping ("/api/decomptes")
-@CrossOrigin(origins = "http://192.168.1.44:3000")
+@CrossOrigin(origins = "http://192.168.1.38:3000")
 public class DecompteController {
 
     @Autowired
@@ -30,6 +30,7 @@ public class DecompteController {
 
     @Autowired
     private HistoriqueStatutRepository  historiqueStatutRepository;
+
 
     @GetMapping
     public List <Decompte > getAllDecomptes() {

@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/courriers")
-@CrossOrigin(origins = "http://192.168.1.44:3000")
+@CrossOrigin(origins = "http://192.168.1.38:3000")
 public class CourrierController {
 
     private final CourrierService  courrierService;
