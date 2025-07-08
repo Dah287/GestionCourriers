@@ -22,6 +22,7 @@ import LoginPage from './components/Login/LoginPage';
 import LoginPage1 from './components/Login/LoginPage1';
 import { AuthProvider } from './components/Authentification/AuthContext';
 import ProtectedRoute from './components/Authentification/ProtectedRoute';
+import MarcheList from './components/MarcheList';
 
 // import ProtectedRoute from './ProtectedRoute';
 // import { AuthProvider } from './AuthContext';
@@ -58,7 +59,7 @@ function App() {
                 <Route path="/" element={<LoginPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/login1" element={<LoginPage1 />} />
-
+                <Route path="/marche" element={<MarcheList />} />     
                 {/* Routes protégées */}
                 <Route path="/courriers" element={<ProtectedRoute><CourrierList /></ProtectedRoute>} />
                 <Route path="/decomptes" element={<ProtectedRoute><DecompteList /></ProtectedRoute>} />
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/courriers/Service" element={<ProtectedRoute><CourrierListService /></ProtectedRoute>} />
                 <Route path="/courriers/Bureau" element={<ProtectedRoute><CourrierListBureau /></ProtectedRoute>} />
                 <Route path="/decomptes/bcp" element={<ProtectedRoute><DecompteListBCP /></ProtectedRoute>} />
+                <Route path="/dashbord/decomptes" element={<ProtectedRoute><DashboardDecomptes /></ProtectedRoute>} />
                 <Route path="/decomptes/scf" element={<ProtectedRoute><DecompteServiceSCF /></ProtectedRoute>} />
                 <Route path="/decomptes/dashbord" element={<ProtectedRoute><DashboardDecomptes /></ProtectedRoute>} />
               </Routes>

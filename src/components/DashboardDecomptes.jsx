@@ -3,103 +3,299 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
-  Divider,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
+  TablePagination,
+  Menu,
+  MenuItem,
+  IconButton,
+  Tooltip,
   Chip,
+  Divider,
   AppBar,
   Toolbar,
   Badge,
   Tabs,
   Tab,
   Container,
-   IconButton // Ajoutez cette importation
+  Button,
+    Modal,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import {
+  MoreVert as MoreVertIcon,
+  Add as AddIcon,
+  Refresh as RefreshIcon,
+  FilterList as FilterListIcon,
   AttachMoney,
-  TrendingUp,
-  TrendingDown,
-  Receipt,
-  Warning as WarningIcon,
+  Mail,
   AccountBalance,
   Notifications,
-  Dashboard,
-  Mail
+  Logout ,
+  Dashboard
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import courrierApi from '../services/courrierApi';
 import useAutoLogout from './Authentification/useAutoLogout';
 
 const DashboardDecomptes = () => {
       useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [activeTab, setActiveTab] = useState(2);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(0); // Défaut sur l'onglet Décomptes
+
+
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
+
+  //handleViewHistorique
+const [historique, setHistorique] = useState([]);
+const [openHistoriqueModal, setOpenHistoriqueModal] = useState(false);
+
+
+  const open = Boolean(anchorEl);
+
+  // Charger les données depuis l'API
+  const fetchDecomptes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await courrierApi.getAllDecomptes();
+      console.log("response.data :",response.data)
+      setDecomptes(response.data);
+    } catch (err) {
+      console.error("Error fetching decomptes:", err);
+      setError(err.message || "Failed to load decomptes.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://192.168.1.59:8080/api/decomptes');
-        setDecomptes(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchDecomptes();
   }, []);
 
-  const handleTabChange = (_, newValue) => {
-    if (newValue === 1) navigate('/courriers');
-    if (newValue === 0) navigate('/dashboard');
+  const handleMenuClick = (event, row) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(row);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  // Calcul des indicateurs
-  const totalDecomptes = decomptes.length;
-  const totalMontant = decomptes.reduce((sum, d) => sum + (d.montant || 0), 0);
-  const decomptesPayes = decomptes.filter(d => d.situationDecompte === 'PAYE').length;
-  const decomptesEnAttente = decomptes.filter(d => d.situationDecompte === 'EN_ATTENTE').length;
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-  // Derniers décomptes
-  const derniersDecomptes = [...decomptes]
-    .sort((a, b) => new Date(b.dateDecompte) - new Date(a.dateDecompte))
-    .slice(0, 5);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
+  const handleRefresh = async () => {
+    await fetchDecomptes();
+  };
+
+  const handleAddDecompte = () => {
+    navigate('/decomptes/add2');
+  };
+
+  const handleViewDetails = (id) => {
+    navigate(`/decomptes/${id}`);
+  };
+
+  const handleDeleteDecompte = async () => {
+    if (!selectedRow) return;
+
+    const isConfirmed = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer le décompte "${selectedRow.numDecompte}" ?`
     );
-  }
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography color="error">Erreur de chargement: {error}</Typography>
-      </Box>
-    );
+    if (isConfirmed) {
+      try {
+        await courrierApi.deleteDecompte(selectedRow.id);
+        alert("Décompte supprimé avec succès !");
+        handleMenuClose();
+        await fetchDecomptes();
+      } catch (err) {
+        console.error("Error deleting decompte:", err);
+        alert("Une erreur est survenue lors de la suppression du décompte.");
+      }
+    }
+  };
+
+const handleTransferToSCF = async () => {
+  if (!selectedRow) return;
+  
+  // Ajout de la confirmation
+  const isConfirmed = window.confirm(
+    `Êtes-vous sûr de vouloir transférer le courrier ${selectedRow.numeroOrdre} au service ?`
+  );
+  
+  if (!isConfirmed) return;
+
+  try {
+    await courrierApi.updateStatut(selectedRow.id,{
+      statut: "SERVICE_SCF",
+     date_envoi_scf: new Date().toISOString().split('T')[0], // "2025-06-01"
+    });
+    
+    // Message de succès plus informatif
+    alert(`Le courrier ${selectedRow.numeroOrdre} a été transféré au service avec succès.`);
+    
+    handleMenuClose();
+    await fetchDecomptes();
+  } catch (err) {
+    console.error("Erreur lors du transfert au service:", err);
+    alert(`Échec du transfert du courrier ${selectedRow.numeroOrdre} au service.`);
   }
+};
+
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'EN_ATTENTE':
+      return 'En attente de validation DPF';
+    case 'SERVICE_SCF':
+      return 'Envoyé à SCF';
+    case 'BCP':
+      return 'Envoyé à BCP';
+    case 'ATP':
+      return 'Envoyé à ATP';
+    case 'REJETE_BCP':
+      return 'Rejeté par le BCP / SCF';
+    case 'REJETE_ATP':
+      return 'Rejeté par l\'ATP / BCP';
+    case 'REJETE_ATP_S':
+      return 'Rejeté par le ATP / SCF';
+    case 'REJETE_BCP_E':
+      return 'Rejeté par le BCP / DPF';
+    case 'REJETE_ATP_E':
+      return 'Rejeté par le ATP / DPF';
+    case 'ACCEPTE':
+      return 'Accepté et payé';
+    default:
+      return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  }
+};
+
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'EN_ATTENTE':
+      return 'warning'; // En attente
+    case 'SERVICE_SCF':
+      return 'info'; // En cours SCF
+    case 'BCP':
+      return 'info'; // En cours BCP
+    case 'ATP':
+      return 'info'; // En cours ATP
+    case 'REJETE_BCP':
+    case 'REJETE_ATP':
+    case 'REJETE_ATP_S':
+    case 'REJETE_BCP_E':
+    case 'REJETE_ATP_E':
+      return 'error'; // Tous les rejets
+    case 'ACCEPTE':
+      return 'success'; // Validé
+    default:
+      return 'default';
+  }
+};
+
+
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR');
+  };
+
+  const handleEditDecompte = () => {
+    if (selectedRow) {
+      navigate(`/decomptes/edit/${selectedRow.id}`);
+      handleMenuClose();
+    }
+  };
+
+  const handleDownloadDecomptePdf = async (id) => {
+  try {
+    const response = await courrierApi.downloadDecomptePdf(id);
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `decompte_${id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement du PDF :", error);
+  }
+};
+
+const handleViewHistorique = async (id) => {
+  try {
+    const response = await fetch(`http://192.168.1.46:8080/api/decomptes/${id}/historique`);
+    if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
+    
+    const data = await response.json();
+    setHistorique(data);
+    setOpenHistoriqueModal(true);
+  } catch (error) {
+    console.error(error);
+    alert('Impossible de charger l’historique.');
+  }
+};
+
+const handleStatusCardClick = (status) => {
+  setSelectedStatusFilter(status);
+};
+const rejectedStatuses = [
+  'REJETE_BCP',
+  'REJETE_ATP',
+  'REJETE_BCP_S',
+  'REJETE_ATP_S',
+  'REJETE_BCP_E',
+  'REJETE_ATP_E'
+];
+
+const handleLogout = () => {
+  // Vider tout le localStorage
+  localStorage.clear();
+
+  // Rediriger vers la page de login
+  navigate("/login1");
+};
+
+  if (loading) return <Typography>Chargement en cours...</Typography>;
+  if (error) return <Typography color="error">Erreur: {error}</Typography>;
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor: "primary.main", boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-            <Mail sx={{ mr: 2, fontSize: 32 }} />
+            <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
             <Typography variant="h5" component="div" sx={{ fontWeight: "bold" }}>
-              Gestion des Courriers
+              Gestion des Décomptes
             </Typography>
           </Box>
 
@@ -108,198 +304,293 @@ const DashboardDecomptes = () => {
               <Notifications />
             </Badge>
           </IconButton>
+                  <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                    Déconnecter
+                  </Button>
         </Toolbar>
       </AppBar>
 
-<Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-  <Container maxWidth="xl">
-    <Tabs
-      value={activeTab}
-      onChange={(_, newValue) => {
-        if (newValue === 1) navigate('/courriers');
-        if (newValue === 2) navigate('/decomptes');
-        setActiveTab(newValue);
-      }}
-      aria-label="navigation tabs"
-      sx={{
-        "& .MuiTab-root": {
-          minHeight: 64,
-          textTransform: "none",
-          fontSize: "1rem",
-          fontWeight: 500,
-        },
-      }}
-    >
-      <Tab 
-        icon={<Dashboard />} 
-        label="Tableau de Bord" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<Mail />} 
-        label="Gestion Courriers" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<AccountBalance />} 
-        label="Suivi Décomptes" 
-        iconPosition="start" 
-        sx={{
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '80%',
-            height: 3,
-            bgcolor: 'primary.main',
-            borderRadius: '3px 3px 0 0',
-            opacity: activeTab === 2 ? 1 : 0,
-            transition: 'opacity 0.3s'
-          }
-        }}
-      />
-    </Tabs>
-  </Container>
-</Paper>
-
+      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+        <Container maxWidth="xl">
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => {
+              if (newValue === 1) navigate('/courriers');
+              if (newValue === 0) navigate('/dashbord');
+              setActiveTab(newValue);
+            }}
+            aria-label="navigation tabs"
+            sx={{
+              "& .MuiTab-root": {
+                minHeight: 64,
+                textTransform: "none",
+                fontSize: "1rem",
+                fontWeight: 500,
+              },
+            }}
+          >
+            <Tab 
+              icon={<Dashboard />} 
+              label="Tableau de Bord" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+            <Tab 
+              icon={<Mail />} 
+              label="Gestion Courriers" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+            <Tab 
+              icon={<AccountBalance />} 
+              label="Suivi Décomptes" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+          </Tabs>
+        </Container>
+      </Paper> */}
+      
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-          Tableau de Bord - Gestion des Décomptes
-        </Typography>
-
-        {/* KPI Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Box display="flex" alignItems="center">
-                <AttachMoney color="primary" sx={{ fontSize: 40, mr: 2 }} />
-                <Box>
-                  <Typography variant="h5">
-                    {totalMontant.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} MDH
-                  </Typography>
-                  <Typography variant="subtitle2">Montant Total</Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Box display="flex" alignItems="center">
-                <Receipt color="secondary" sx={{ fontSize: 40, mr: 2 }} />
-                <Box>
-                  <Typography variant="h5">{totalDecomptes}</Typography>
-                  <Typography variant="subtitle2">Total Décomptes</Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Box display="flex" alignItems="center">
-                <TrendingUp sx={{ color: 'success.main', fontSize: 40, mr: 2 }} />
-                <Box>
-                  <Typography variant="h5">{decomptesPayes}</Typography>
-                  <Typography variant="subtitle2">Décomptes Payés</Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Box display="flex" alignItems="center">
-                <TrendingDown sx={{ color: 'warning.main', fontSize: 40, mr: 2 }} />
-                <Box>
-                  <Typography variant="h5">{decomptesEnAttente}</Typography>
-                  <Typography variant="subtitle2">En Attente</Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Derniers décomptes */}
-        <Paper sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Derniers Décomptes
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" component="h2">
+           Tableau de Bord des Décomptes
           </Typography>
+          <Box>
+            <Tooltip title="Rafraîchir">
+              <IconButton sx={{ mr: 1 }} onClick={handleRefresh}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Filtrer">
+              <IconButton sx={{ mr: 1 }}>
+                <FilterListIcon />
+              </IconButton>
+            </Tooltip>
+            <Button 
+             sx={{ bgcolor:'#2e7d32'}}
+              variant="contained" 
+              startIcon={<AddIcon />}
+              onClick={handleAddDecompte}
+            >
+              Nouveau Décompte
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Statistiques */}
+        {/* <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Paper sx={{ p: 2, flex: 1 }}>
+            <Typography variant="subtitle2">Décomptes en attente</Typography>
+            <Typography variant="h4">
+              {decomptes.filter(d => d.statut === 'EN_ATTENTE').length}
+            </Typography>
+          </Paper>
+          <Paper sx={{ p: 2, flex: 1 }}>
+            <Typography variant="subtitle2">En cours de traitement</Typography>
+            <Typography variant="h4">
+              {decomptes.filter(d => d.statut === 'EN_COURS').length}
+            </Typography>
+          </Paper>
+          <Paper sx={{ p: 2, flex: 1 }}>
+            <Typography variant="subtitle2">Décomptes payés</Typography>
+            <Typography variant="h4">
+              {decomptes.filter(d => d.statut === 'PAYE').length}
+            </Typography>
+          </Paper>
+          <Paper sx={{ p: 2, flex: 1 }}>
+            <Typography variant="subtitle2">Montant total</Typography>
+            <Typography variant="h4">
+              {decomptes.reduce((sum, d) => sum + (d.montant || 0), 0).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} MDH
+            </Typography>
+          </Paper>
+        </Box> */}
+{/* Statistiques par statut */}  
+<Box sx={{ p: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+  {[
+    { label: 'En attente', status: 'EN_ATTENTE' },
+    { label: 'Envoyé à SCF', status: 'SERVICE_SCF' },
+    { label: 'Envoyé à BCP', status: 'BCP' },
+    { label: 'Envoyé à ATP', status: 'ATP' },
+    { label: 'Rejeté', status: rejectedStatuses }, // ✅ plusieurs statuts
+    { label: 'Accepté et payé', status: 'ACCEPTE' },
+    { label: 'Total', status: null }
+  ].map(({ label, status }) => {
+    const count = Array.isArray(status)
+      ? decomptes.filter(d => status.includes(d.statut)).length
+      : status
+        ? decomptes.filter(d => d.statut === status).length
+        : decomptes.length;
+
+    const isSelected = Array.isArray(status)
+      ? JSON.stringify(status) === JSON.stringify(selectedStatusFilter)
+      : selectedStatusFilter === status;
+
+    return (
+      <Paper
+        key={label}
+        sx={{
+          p: 2,
+          flex: 1,
+          minWidth: 200,
+          cursor: 'pointer',
+          bgcolor: isSelected ? 'primary.light' : 'white',
+          border: isSelected ? '2px solid #2e7d32' : '1px solid #ddd'
+        }}
+        onClick={() => handleStatusCardClick(status)}
+      >
+        <Typography variant="subtitle2">{label}</Typography>
+        <Typography variant="h4">{count}</Typography>
+      </Paper>
+    );
+  })}
+</Box>
+
+        {/* Tableau */}
+        <Paper sx={{ mb: 2 }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>N° Décompte</TableCell>
-                  <TableCell>Fournisseur</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell align="right">Montant (MDH)</TableCell>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Année</TableCell>
+                  <TableCell>Numéro Décompte</TableCell>
+                  <TableCell>Montant</TableCell>
+                  <TableCell>Date Attachement</TableCell>
+                  <TableCell>Date Établis</TableCell>
+                  <TableCell>Date Signature</TableCell>
                   <TableCell>Statut</TableCell>
-                  <TableCell>Urgent</TableCell>
+                  <TableCell>Motif Rejet</TableCell>
+                   <TableCell>Marché</TableCell>
+                  <TableCell>Fournisseur</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {derniersDecomptes.map((decompte) => (
-                  <TableRow key={decompte.idDecompte}>
-                    <TableCell>{decompte.numDecompte}</TableCell>
-                    <TableCell>{decompte.fournisseur}</TableCell>
+                {decomptes
+                  .filter(d => {
+                    if (!selectedStatusFilter) return true;
+                    if (Array.isArray(selectedStatusFilter)) {
+                      return selectedStatusFilter.includes(d.statut);
+                    }
+                    return d.statut === selectedStatusFilter;
+                  })
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+
+
+
+                  <TableRow key={row.id}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{row.annee}</TableCell>
+                    <TableCell>{row.numDecompte}</TableCell>
                     <TableCell>
-                      {new Date(decompte.dateDecompte).toLocaleDateString('fr-FR')}
+                      {row.montant?.toLocaleString('fr-FR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })} MDH
                     </TableCell>
-                    <TableCell align="right">
-                      {decompte.montant?.toLocaleString('fr-FR', { 
-                        minimumFractionDigits: 2 
-                      })}
-                    </TableCell>
+                    <TableCell>{formatDate(row.dateAttachement)}</TableCell>
+                    <TableCell>{formatDate(row.dateEtablis)}</TableCell>
+                    <TableCell>{formatDate(row.dateSignature)}</TableCell>
                     <TableCell>
                       <Chip
-                        label={decompte.situationDecompte === 'PAYE' ? 'Payé' : 'En attente'}
-                        color={decompte.situationDecompte === 'PAYE' ? 'success' : 'warning'}
+                        label={getStatusLabel(row.statut)}
                         size="small"
+                        color={getStatusColor(row.statut)}
+                       onClick={() => { }} // Add this line
                       />
                     </TableCell>
-                    <TableCell>
-                      {decompte.urgent && <WarningIcon color="error" />}
+                     <TableCell>{row.motif}</TableCell>
+                    <TableCell>{row.marche?.objet}</TableCell>
+                    <TableCell>{row.marche?.fournisseur}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, row)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={decomptes.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Lignes par page:"
+          />
         </Paper>
 
-        {/* Statistiques par année */}
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Répartition par Année
-          </Typography>
-          <Grid container spacing={3}>
-            {Array.from(new Set(decomptes.map(d => d.annee)))
-              .sort((a, b) => b - a)
-              .map(annee => {
-                const decomptesAnnee = decomptes.filter(d => d.annee === annee);
-                const montantAnnee = decomptesAnnee.reduce((sum, d) => sum + (d.montant || 0), 0);
-                
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={annee}>
-                    <Paper sx={{ p: 2 }}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Année {annee}
-                      </Typography>
-                      <Typography variant="body2">Nombre: {decomptesAnnee.length}</Typography>
-                      <Typography variant="body2">
-                        Montant: {montantAnnee.toLocaleString('fr-FR')} MDH
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                );
-              })}
-          </Grid>
-        </Paper>
+        {/* Menu contextuel */}
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={() => {
+            handleViewDetails(selectedRow?.id);
+            handleMenuClose();
+          }}>
+            Voir les détails
+          </MenuItem>
+          <MenuItem onClick={handleEditDecompte}>Modifier</MenuItem>
+          <Divider />
+          <MenuItem onClick={handleTransferToSCF}>Transférer au SCF</MenuItem>
+          <Divider />
+          <MenuItem onClick={handleDeleteDecompte} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
+            {/* ✅ Nouveau MenuItem pour téléchargement PDF */}
+          <Divider />
+          <MenuItem
+            onClick={() => {
+              handleDownloadDecomptePdf(selectedRow?.id);
+              handleMenuClose();
+            }}
+          >
+            Télécharger PDF
+          </MenuItem>
+           {/* ✅ Voir l'historique */}
+          <MenuItem
+            onClick={() => {
+              handleViewHistorique(selectedRow?.id); // 👉 Tu dois créer cette fonction
+              handleMenuClose();
+            }}
+          >
+            Voir l'historique
+          </MenuItem>
+        </Menu>
+        <Modal open={openHistoriqueModal} onClose={() => setOpenHistoriqueModal(false)}>
+  <Box sx={{ width: 500, bgcolor: 'background.paper', margin: 'auto', mt: 10, p: 3, borderRadius: 2, boxShadow: 24 }}>
+    <Typography variant="h6" gutterBottom>
+      Historique des statuts
+    </Typography>
+
+    <List>
+      {historique.map((item, index) => (
+        <React.Fragment key={index}>
+          <ListItem>
+            <ListItemText
+              primary={`🔁 ${item.ancienStatut} ➜ ${item.nouveauStatut}`}
+              secondary={`🗓️ ${item.dateChangement} | ${item.description}`}
+            />
+          </ListItem>
+          <Divider />
+        </React.Fragment>
+      ))}
+    </List>
+  </Box>
+</Modal>
+
       </Box>
     </Box>
   );

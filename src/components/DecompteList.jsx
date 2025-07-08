@@ -22,7 +22,11 @@ import {
   Tabs,
   Tab,
   Container,
-  Button
+  Button,
+    Modal,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
@@ -51,6 +55,11 @@ const DecompteList = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  //handleViewHistorique
+const [historique, setHistorique] = useState([]);
+const [openHistoriqueModal, setOpenHistoriqueModal] = useState(false);
+
 
   const open = Boolean(anchorEl);
 
@@ -238,6 +247,21 @@ const getStatusColor = (status) => {
     console.error("Erreur lors du téléchargement du PDF :", error);
   }
 };
+
+const handleViewHistorique = async (id) => {
+  try {
+    const response = await fetch(`http://192.168.1.46:8080/api/decomptes/${id}/historique`);
+    if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
+    
+    const data = await response.json();
+    setHistorique(data);
+    setOpenHistoriqueModal(true);
+  } catch (error) {
+    console.error(error);
+    alert('Impossible de charger l’historique.');
+  }
+};
+
 
 
 const handleLogout = () => {
@@ -470,7 +494,38 @@ const handleLogout = () => {
           >
             Télécharger PDF
           </MenuItem>
+           {/* ✅ Voir l'historique */}
+          <MenuItem
+            onClick={() => {
+              handleViewHistorique(selectedRow?.id); // 👉 Tu dois créer cette fonction
+              handleMenuClose();
+            }}
+          >
+            Voir l'historique
+          </MenuItem>
         </Menu>
+        <Modal open={openHistoriqueModal} onClose={() => setOpenHistoriqueModal(false)}>
+  <Box sx={{ width: 500, bgcolor: 'background.paper', margin: 'auto', mt: 10, p: 3, borderRadius: 2, boxShadow: 24 }}>
+    <Typography variant="h6" gutterBottom>
+      Historique des statuts
+    </Typography>
+
+    <List>
+      {historique.map((item, index) => (
+        <React.Fragment key={index}>
+          <ListItem>
+            <ListItemText
+              primary={`🔁 ${item.ancienStatut} ➜ ${item.nouveauStatut}`}
+              secondary={`🗓️ ${item.dateChangement} | ${item.description}`}
+            />
+          </ListItem>
+          <Divider />
+        </React.Fragment>
+      ))}
+    </List>
+  </Box>
+</Modal>
+
       </Box>
     </Box>
   );

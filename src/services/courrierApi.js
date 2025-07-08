@@ -1,9 +1,9 @@
 // src/services/courrierApi.js
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.59:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
-const API_URL2 = 'http://192.168.1.59:8080/api/decomptes'; 
-const API_URL3 = 'http://192.168.1.59:8080/api/marches'; 
+const API_URL = 'http://192.168.1.46:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
+const API_URL2 = 'http://192.168.1.46:8080/api/decomptes'; 
+const API_URL3 = 'http://192.168.1.46:8080/api/marches'; 
 const getCourrier = (id) => {
   return axios.get(`${API_URL}/${id}`);
 };
@@ -159,6 +159,15 @@ const updateStatut = (id, data) => {
   return axios.put(`${API_URL2}/${id}/statut`, data);
 };
 
+// 🌟 Gestion des Marchés
+
+
+
+const createMarche = (marcheData) => {
+  return axios.post(`${API_URL3}`, marcheData);
+};
+
+
 const courrierApi = {
   getCourrier,
   createCourrier,
@@ -203,7 +212,10 @@ const courrierApi = {
   getAllDecomptesSCF,
 
   //
-  downloadDecomptePdf
+  downloadDecomptePdf,
+  //
+    // ✅ nouvelle fonction
+  createMarche        // ✅ nouvelle fonction
 };
 
 export default courrierApi;
