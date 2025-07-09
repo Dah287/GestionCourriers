@@ -45,7 +45,7 @@ const CourrierList = () => {
   const navigate = useNavigate();
   const [courriers, setCourriers] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(1);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -411,6 +411,7 @@ const getStatusColor = (status) => {
                   <TableCell>Objet</TableCell>
                   <TableCell>Entite Transmis</TableCell>
                    <TableCell>Service Transmis</TableCell>
+                    <TableCell>Bureau Transmis</TableCell>
                   <TableCell>Statut</TableCell>
                   <TableCell>Date arrivée</TableCell>
                   <TableCell>Urgent</TableCell>
@@ -431,6 +432,7 @@ const getStatusColor = (status) => {
                     <TableCell>{row.objet}</TableCell>
                      <TableCell>{row.entiteTransmise}</TableCell>
                      <TableCell>{row.serviceDestinataire}</TableCell>
+                      <TableCell>{row.bureauRecepteur}</TableCell>
 <TableCell>
   <Chip
     label={getStatusLabel(row.status)}
@@ -479,18 +481,22 @@ const getStatusColor = (status) => {
           open={open}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={() => {
+          {/* <MenuItem onClick={() => {
             handleViewDetails(selectedRow.id);
             handleMenuClose();
           }}>
             Voir les détails
           </MenuItem>
-          <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
+          <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem> */}
           <Divider />
-          <MenuItem onClick={handleTransferToService}>Transférer au service</MenuItem>
-          <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>
+          <MenuItem onClick={handleTransferToService}
+           disabled={selectedRow?.status !== 'EN_ATTENTE'}
+          >Transférer au service</MenuItem>
+          <MenuItem onClick={handleMarkAsTreated}
+          disabled={selectedRow?.status !== 'EN_ATTENTE'}
+          >Marquer comme traité</MenuItem>
           <Divider />
-          <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
+          {/* <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem> */}
         </Menu>
       </Box>
     </Box>

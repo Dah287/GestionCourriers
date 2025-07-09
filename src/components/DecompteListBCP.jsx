@@ -52,7 +52,7 @@ const DecompteListBCP = () => {
   const [decomptesBCP, setDecomptesBCP] = useState([]);
     const [decomptesATP, setDecomptesATP] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(2);
 const [anchorElBCP, setAnchorElBCP] = useState(null);
 const [anchorElATP, setAnchorElATP] = useState(null);
@@ -460,7 +460,7 @@ const handleLogout = () => {
                   <TableCell>Date Établis</TableCell>
                   <TableCell>Date Signature</TableCell>
                   <TableCell>Statut</TableCell>
-                  <TableCell>Marché</TableCell>
+                  <TableCell>Nº Marché</TableCell>
                   <TableCell>Fournisseur</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -487,7 +487,7 @@ const handleLogout = () => {
                         color={getStatusColor(row.statut)}
                       />
                     </TableCell>
-                    <TableCell>{row.marche?.objet}</TableCell>
+                    <TableCell>{row.marche?.numOperation}</TableCell>
                     <TableCell>{row.marche?.fournisseur}</TableCell>
                     <TableCell align="right">
                       <IconButton
@@ -667,23 +667,49 @@ const handleLogout = () => {
 
       </Box>
 
-<Dialog open={openMotifDialog} onClose={handleCloseMotifDialog}>
-  <DialogTitle>Motif du rejet</DialogTitle>
-  <DialogContent>
+<Dialog
+  open={openMotifDialog}
+  onClose={handleCloseMotifDialog}
+  fullWidth
+  maxWidth="sm" // sm, md, lg, etc.
+  PaperProps={{
+    sx: { borderRadius: 3, p: 2 } // coins arrondis et padding
+  }}
+>
+  <DialogTitle sx={{ fontWeight: 'bold', color: 'error.main' }}>
+    🛑 Motif du rejet
+  </DialogTitle>
+
+  <DialogContent dividers sx={{ bgcolor: '#fefefe' }}>
     <TextField
       autoFocus
       margin="dense"
-      label="Motif"
+      label="Veuillez saisir le motif du rejet"
+      placeholder="Exemple : Documents manquants, montant incorrect, etc."
       fullWidth
+      multiline
+      rows={4}
       value={motifRejet}
       onChange={(e) => setMotifRejet(e.target.value)}
+      variant="outlined"
     />
   </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseMotifDialog}>Annuler</Button>
-    <Button onClick={updateStatutWithMotif} variant="contained">Valider</Button>
+
+  <DialogActions sx={{ px: 3, pb: 2 }}>
+    <Button onClick={handleCloseMotifDialog} variant="outlined" color="inherit">
+      Annuler
+    </Button>
+    <Button
+      onClick={updateStatutWithMotif}
+      variant="contained"
+      color="error"
+      disabled={!motifRejet.trim()}
+    >
+      Valider
+    </Button>
   </DialogActions>
 </Dialog>
+
     </Box>
   );
 };

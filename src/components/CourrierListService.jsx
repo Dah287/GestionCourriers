@@ -53,7 +53,7 @@ const CourrierListService = () => {
   const navigate = useNavigate();
   const [courriers, setCourriers] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(1);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -62,12 +62,13 @@ const CourrierListService = () => {
 
   // Pour Dialog bureau
   const [openBureauDialog, setOpenBureauDialog] = useState(false);
-  const [selectedBureau, setSelectedBureau] = useState('');
+const [selectedBureaux, setSelectedBureaux] = useState([]);
+
 
   const open = Boolean(anchorEl);
 //
 
-console.log("LocalStorage contenu:", localStorage);
+//console.log("LocalStorage contenu:", localStorage);
 
 const token = localStorage.getItem('token');
 const idUser = localStorage.getItem('id_user');
@@ -80,7 +81,7 @@ const bureau = localStorage.getItem('bureau');
     setError(null);
     try {
       const response = await courrierApi.getCourriersParEntite(service);
-      console.log("service:",service)
+     // console.log("service:",service)
       setCourriers(response.data);
     } catch (err) {
       setError(err.message || "Failed to load courriers.");
@@ -167,31 +168,52 @@ const bureau = localStorage.getItem('bureau');
   };
 
   // Confirmer transfert
-  const handleConfirmTransferToBureau = async () => {
-    if (!selectedBureau) {
-      alert("Veuillez sélectionner un bureau.");
-      return;
+const handleConfirmTransferToBureau = async () => {
+  if (selectedBureaux.length === 0) {
+    alert("Veuillez sélectionner au moins un bureau.");
+    return;
+  }
+
+  const isConfirmed = window.confirm(
+    `Confirmer le transfert vers ${selectedBureaux.join(', ')} ?`
+  );
+
+  if (!isConfirmed) return;
+
+  try {
+    if (selectedBureaux.length === 1) {
+      // Cas simple : 1 bureau, mise à jour
+      await courrierApi.updateStatusBureau(selectedRow.id, selectedBureaux[0]);
+    } else {
+      // Cas multiple : copier le courrier pour chaque bureau
+      const originalCourrier = { ...selectedRow };
+
+      for (const bureau of selectedBureaux) {
+        const nouveauCourrier = {
+          ...originalCourrier,
+          id: null, // Laisse l'ID vide ou null pour le back-end
+          status: "RECU_BUREAU",
+          bureauRecepteur: bureau,
+          dateReceptionService: new Date(),
+        };
+console.log("Dupliquer et transférer le courrier",nouveauCourrier)
+        await courrierApi.createCourrier(nouveauCourrier); // Assure-toi que cette méthode existe
+          // ✅ Mise à jour du statut du courrier original à 'TRANSFERE'
+        await courrierApi.updateDateReceptioTraite(selectedRow.id);
+      }
+
+      alert(`Courrier transférer avec succès pour les bureaux : ${selectedBureaux.join(', ')}`);
     }
 
-    const isConfirmed = window.confirm(
-      `Êtes-vous sûr de vouloir transférer le courrier ${selectedRow.numeroOrdre} au bureau ${selectedBureau} ?`
-    );
+    setOpenBureauDialog(false);
+    setSelectedBureaux([]);
+    handleMenuClose();
+    await fetchCourriers();
+  } catch (error) {
+    alert(`Erreur lors du transfert : ${error.message}`);
+  }
+};
 
-    if (!isConfirmed) return;
-
-    try {
-      // Utilisation de courrierApi : crée la méthode updateStatusBureau dans courrierApi.js
-      await courrierApi.updateStatusBureau(selectedRow.id, selectedBureau);
-
-      alert(`Le courrier ${selectedRow.numeroOrdre} a été transféré au bureau ${selectedBureau} avec succès.`);
-      setOpenBureauDialog(false);
-      setSelectedBureau('');
-      handleMenuClose();
-      await fetchCourriers();
-    } catch (error) {
-      alert(`Échec du transfert du courrier ${selectedRow.numeroOrdre} au bureau ${selectedBureau}.`);
-    }
-  };
 
   // Marquer comme traité
   const handleMarkAsTreated = async () => {
@@ -256,7 +278,8 @@ const bureauxParService = {
     "BUREAU DE LA COMPTABILITE GENERALE ET ANALYTIQUE"
   ],
   "SERVICE INFORMATIQUE": [
-    "BUREAU DE L'EXPLOITATION ET DE LA MAINTENANCE DU SYSTÈME INFORMATIQUE"
+    "BUREAU DE L'EXPLOITATION ET DE LA MAINTENANCE DU SYSTÈME INFORMATIQUE",
+    "BUREAU DE ETUDE ET DEVELOPPEMENT INFORMATIQUE"
   ]
 };
 
@@ -486,54 +509,58 @@ const bureauxDisponibles = selectedRow
           open={open}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={() => {
+          {/* <MenuItem onClick={() => {
             handleViewDetails(selectedRow.id);
             handleMenuClose();
           }}>
             Voir les détails
           </MenuItem>
-          <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
+          <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem> */}
           <Divider />
           <MenuItem onClick={handleOpenBureauDialog}>Transférer au bureau</MenuItem>
           <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>
           <Divider />
-          <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
+          {/* <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem> */}
         </Menu>
 
         {/* Dialog sélection bureau */}
         <Dialog open={openBureauDialog} onClose={() => setOpenBureauDialog(false)} >
-          <DialogTitle>Transférer au bureau</DialogTitle>
-          <DialogContent>
-            <FormControl fullWidth sx={{ mt: 2, minWidth: 450, }}>
-              <InputLabel id="select-bureau-label">Bureau</InputLabel>
-              <Select
-                labelId="select-bureau-label"
-                value={selectedBureau}
-                label="Bureau"
-                onChange={(e) => setSelectedBureau(e.target.value)}
-              >
-              <MenuItemSelect value="">
-                <em>Choisir un bureau</em>
-              </MenuItemSelect>
-              {bureauxDisponibles.map((bureau, index) => (
-                <MenuItemSelect key={index} value={bureau}>
-                  {bureau}
-                </MenuItemSelect>
-              ))}
+          <DialogTitle>
+  {selectedBureaux.length <= 1
+    ? "Transférer le courrier"
+    : "Dupliquer et transférer le courrier"}
+</DialogTitle>
 
-                {/* Ajoute ici d'autres bureaux si besoin */}
-              </Select>
-            </FormControl>
+          <DialogContent>
+           <FormControl fullWidth sx={{ mt: 2, minWidth: 450 }}>
+  <InputLabel id="select-bureau-label">Bureaux</InputLabel>
+  <Select
+    labelId="select-bureau-label"
+    multiple
+    value={selectedBureaux}
+    onChange={(e) => setSelectedBureaux(e.target.value)}
+    label="Bureaux"
+    renderValue={(selected) => selected.join(', ')} // affichage sélection
+  >
+    {bureauxDisponibles.map((bureau, index) => (
+      <MenuItemSelect key={index} value={bureau}>
+        {bureau}
+      </MenuItemSelect>
+    ))}
+  </Select>
+</FormControl>
+
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenBureauDialog(false)}>Annuler</Button>
-            <Button
-              variant="contained"
-              onClick={handleConfirmTransferToBureau}
-              disabled={!selectedBureau}
-            >
-              Confirmer
-            </Button>
+<Button
+  variant="contained"
+  onClick={handleConfirmTransferToBureau}
+  disabled={selectedBureaux.length === 0}
+>
+  Confirmer
+</Button>
+
           </DialogActions>
         </Dialog>
       </Box>

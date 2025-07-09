@@ -28,6 +28,8 @@ import { AccountBalance, Save, Cancel } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import courrierApi from '../services/courrierApi';
+import { useParams } from 'react-router-dom';
+
 
 const AjoutDecompte = () => {
   const navigate = useNavigate();
@@ -37,6 +39,9 @@ const AjoutDecompte = () => {
   const [marches, setMarches] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
 const [searchTerm, setSearchTerm] = useState('');
+
+
+const { id } = useParams(); // id du décompte à modifier (si mode édition)
 
   const currentDate = format(new Date(), 'yyyy-MM-dd');
 
@@ -59,6 +64,34 @@ const [searchTerm, setSearchTerm] = useState('');
     { value: 'PAYE', label: 'Payé' },
     { value: 'REJETE', label: 'Rejeté' }
   ];
+
+
+  useEffect(() => {
+  const fetchDecompte = async () => {
+    if (!id) return; // mode ajout
+
+    setLoading(true);
+    try {
+      console.log("id --> ",id)
+      const response = await courrierApi.getDecompteById(id); // À adapter selon ton API
+      const data = response.data;
+      setDecompte({
+        ...data,
+        marche: { id: data.marche?.id || '' },
+        dateAttachement: data.dateAttachement?.slice(0, 10),
+        dateEtablis: data.dateEtablis?.slice(0, 10),
+        dateSignature: data.dateSignature?.slice(0, 10),
+      });
+    } catch (error) {
+      console.error('Erreur de chargement du décompte:', error);
+      alert("Erreur lors du chargement des données.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDecompte();
+}, [id]);
 
   // Charger la liste des marchés depuis l'API
   useEffect(() => {
@@ -87,35 +120,41 @@ const [searchTerm, setSearchTerm] = useState('');
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
 
-    setLoading(true);
-    try {
-      const payload = {
-        annee: decompte.annee,
-        numDecompte: decompte.numDecompte,
-        montant: parseFloat(decompte.montant),
-        dateAttachement: decompte.dateAttachement,
-        dateEtablis: decompte.dateEtablis,
-        dateSignature: decompte.dateSignature,
-        statut: decompte.statut,
-        motif: decompte.motif,
-         marche: {  // Structure que vous voulez envoyer
+  setLoading(true);
+  try {
+    const payload = {
+      annee: decompte.annee,
+      numDecompte: decompte.numDecompte,
+      montant: parseFloat(decompte.montant),
+      dateAttachement: decompte.dateAttachement,
+      dateEtablis: decompte.dateEtablis,
+      dateSignature: decompte.dateSignature,
+      statut: decompte.statut,
+      motif: decompte.motif,
+      marche: {
         id: decompte.marche.id
       }
-      };
-      console.log("data:",payload)
-      await courrierApi.createDecompte(payload);
-      navigate('/decomptes');
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout:', error);
-      alert("Une erreur est survenue lors de la création du décompte");
-    } finally {
-      setLoading(false);
+    };
+
+    if (id) {
+      await courrierApi.updateDecompte(id, payload); // Appel update
+    } else {
+      await courrierApi.createDecompte(payload); // Appel create
     }
-  };
+
+    navigate('/decomptes');
+  } catch (error) {
+    console.error('Erreur lors de la soumission :', error);
+    alert("Erreur lors de l'enregistrement.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -141,9 +180,10 @@ const [searchTerm, setSearchTerm] = useState('');
     }));
   };
 
-  const handleCancel = () => {
-    navigate('/decomptes');
-  };
+const handleCancel = () => {
+  navigate(-1); // 👈 Revenir à la page précédente dans l'historique
+};
+
 
   const filteredMarches = marches.filter(m =>
   m.numOperation.toLowerCase().includes(searchTerm.toLowerCase())
@@ -154,9 +194,10 @@ const [searchTerm, setSearchTerm] = useState('');
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1100, margin: "auto" , mt: 8, }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <AccountBalance sx={{ mr: 2, color: "primary.main", fontSize: 32 }} />
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
-          Nouveau Décompte
-        </Typography>
+<Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
+  {id ? 'Modifier Décompte' : 'Nouveau Décompte'}
+</Typography>
+
       </Box>
       <Divider sx={{ my: 2 }} />
 

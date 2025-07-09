@@ -45,7 +45,7 @@ const DecompteServiceSCF = () => {
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(2);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -394,7 +394,7 @@ const getStatusColor = (status) => {
                   <TableCell>Date Signature</TableCell>
                   <TableCell>Statut</TableCell>
                   <TableCell>Motif Rejet</TableCell>
-                   <TableCell>Marché</TableCell>
+                   <TableCell>Nº Marché</TableCell>
                   <TableCell>Fournisseur</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -422,7 +422,7 @@ const getStatusColor = (status) => {
                       />
                     </TableCell>
                      <TableCell>{row.motif}</TableCell>
-                    <TableCell>{row.marche?.objet}</TableCell>
+                    <TableCell>{row.marche?.numOperation}</TableCell>
                     <TableCell>{row.marche?.fournisseur}</TableCell>
                     <TableCell align="right">
                       <IconButton

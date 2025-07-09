@@ -49,7 +49,7 @@ const DashboardDecomptes = () => {
   const navigate = useNavigate();
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(2);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -253,7 +253,7 @@ const getStatusColor = (status) => {
 
 const handleViewHistorique = async (id) => {
   try {
-    const response = await fetch(`http://192.168.1.46:8080/api/decomptes/${id}/historique`);
+    const response = await fetch(`http://192.168.1.44:8080/api/decomptes/${id}/historique`);
     if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
     
     const data = await response.json();
@@ -464,7 +464,7 @@ const handleLogout = () => {
                   <TableCell>Date Signature</TableCell>
                   <TableCell>Statut</TableCell>
                   <TableCell>Motif Rejet</TableCell>
-                   <TableCell>Marché</TableCell>
+                   <TableCell>Nº Marché</TableCell>
                   <TableCell>Fournisseur</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -505,7 +505,7 @@ const handleLogout = () => {
                       />
                     </TableCell>
                      <TableCell>{row.motif}</TableCell>
-                    <TableCell>{row.marche?.objet}</TableCell>
+                    <TableCell>{row.marche?.numOperation}</TableCell>
                     <TableCell>{row.marche?.fournisseur}</TableCell>
                     <TableCell align="right">
                       <IconButton
@@ -546,7 +546,9 @@ const handleLogout = () => {
           </MenuItem>
           <MenuItem onClick={handleEditDecompte}>Modifier</MenuItem>
           <Divider />
-          <MenuItem onClick={handleTransferToSCF}>Transférer au SCF</MenuItem>
+          <MenuItem onClick={handleTransferToSCF}
+           disabled={selectedRow?.status !== 'EN_ATTENTE'}
+          >Transférer au SCF</MenuItem>
           <Divider />
           <MenuItem onClick={handleDeleteDecompte} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
             {/* ✅ Nouveau MenuItem pour téléchargement PDF */}

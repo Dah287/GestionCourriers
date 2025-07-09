@@ -29,7 +29,7 @@ import courrierApi from '../services/courrierApi';
 const MarcheList = () => {
   const [marches, setMarches] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDialog, setOpenDialog] = useState(false);
   const [newMarche, setNewMarche] = useState({ entite: '', objet: '', numOperation: '', fournisseur: '', montant: '' });
 

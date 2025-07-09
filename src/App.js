@@ -75,6 +75,7 @@ function App() {
                 <Route path="/dashbord/decomptes" element={<ProtectedRoute><DashboardDecomptes /></ProtectedRoute>} />
                 <Route path="/decomptes/scf" element={<ProtectedRoute><DecompteServiceSCF /></ProtectedRoute>} />
                 <Route path="/decomptes/dashbord" element={<ProtectedRoute><DashboardDecomptes /></ProtectedRoute>} />
+                 <Route path="/decomptes/edit/:id" element={<ProtectedRoute><AjoutDecompte /></ProtectedRoute>} />
               </Routes>
             </div>
           </Router>
