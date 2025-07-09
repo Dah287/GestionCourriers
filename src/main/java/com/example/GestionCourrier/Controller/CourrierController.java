@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/courriers")
@@ -197,5 +198,19 @@ public class CourrierController {
 
         return ResponseEntity.ok(courriersCrees);
     }
+
+    @PostMapping("/transfert-multiple")
+    public ResponseEntity<?> transfertVersBureaux(@RequestBody Map<String, Object> payload) {
+        try {
+            Long courrierId = Long.valueOf(payload.get("id").toString());
+            List<String> bureaux = (List<String>) payload.get("bureaux");
+
+            courrierService.transfertVersBureaux(courrierId, bureaux);
+            return ResponseEntity.ok("Transfert effectué avec succès");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur : " + e.getMessage());
+        }
+    }
+
 
 }

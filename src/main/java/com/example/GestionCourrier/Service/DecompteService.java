@@ -68,6 +68,10 @@ public class DecompteService {
     @Autowired
     private DecompteRepository decompteRepository;
 
+    public Decompte getDecompteById(Long id) {
+        return decompteRepository.findById(id).orElse(null);
+    }
+
     public void changerStatut(Decompte  decompte, StatutDecompte nouveauStatut) {
         StatutDecompte ancienStatut = decompte.getStatut();
 

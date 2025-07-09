@@ -36,6 +36,16 @@ public class DecompteController {
     public List <Decompte > getAllDecomptes() {
         return decompteRepository.findAll();
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<Decompte> getDecompteById(@PathVariable Long id) {
+        Decompte decompte = decompteService.getDecompteById(id);
+        if (decompte != null) {
+            return ResponseEntity.ok(decompte);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping
     public ResponseEntity <Decompte> createDecompte(@RequestBody Decompte decompte) {
         Decompte saved = decompteRepository.save(decompte);
@@ -182,7 +192,7 @@ public class DecompteController {
 
     @GetMapping("/all-bcp")
     public ResponseEntity<List<Decompte>> getCourriersParBCP() {
-        List<StatutDecompte> statuts = List.of(StatutDecompte.BCP, StatutDecompte.REJETE_ATP);
+        List<StatutDecompte> statuts = List.of(StatutDecompte.BCP, StatutDecompte.REJETE_ATP,StatutDecompte.ACCEPTE);
         List<Decompte> decomptes = decompteRepository.findByStatutIn(statuts);
         return ResponseEntity.ok(decomptes);
     }
@@ -280,6 +290,34 @@ public class DecompteController {
         headers.setContentDispositionFormData("attachment", "decompte_" + id + ".pdf");
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus .OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Decompte> updateDecompte(@PathVariable Long id, @RequestBody Decompte updatedDecompte) {
+        Optional<Decompte> optionalDecompte = decompteRepository.findById(id);
+
+        if (optionalDecompte.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Decompte existingDecompte = optionalDecompte.get();
+
+        // Met à jour les champs
+        existingDecompte.setNumDecompte(updatedDecompte.getNumDecompte());
+        existingDecompte.setMontant(updatedDecompte.getMontant());
+        existingDecompte.setDateAttachement(updatedDecompte.getDateAttachement());
+        existingDecompte.setDateEtablis(updatedDecompte.getDateEtablis());
+        existingDecompte.setDateSignature(updatedDecompte.getDateSignature());
+        //existingDecompte.setStatut(updatedDecompte.getStatut());
+        //existingDecompte.setMotif(updatedDecompte.getMotif());
+
+        // Gérer la mise à jour du marché s’il est présent
+        if (updatedDecompte.getMarche() != null) {
+            existingDecompte.setMarche(updatedDecompte.getMarche());
+        }
+
+        Decompte saved = decompteRepository.save(existingDecompte);
+        return ResponseEntity.ok(saved);
     }
 
 }
