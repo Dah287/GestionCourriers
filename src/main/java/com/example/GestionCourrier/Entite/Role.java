@@ -7,6 +7,7 @@ public enum Role {
     CHEF_SCF,
     CHEF_BUREAU,
     CHEF_SERVICE,
-    SECRETARIAT
+    SECRETARIAT,
+    SECRETARIAT_DPF
 
 }

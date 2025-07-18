@@ -7,6 +7,10 @@ public class HistoriqueUtils {
     public static String genererDescription(StatutDecompte ancien, StatutDecompte nouveau) {
         if (ancien == StatutDecompte.EN_ATTENTE && nouveau == StatutDecompte.SERVICE_SCF) {
             return "Envoyé à Service SCF";
+        } else if (ancien == StatutDecompte.REJETE_ATP_E && nouveau == StatutDecompte.SERVICE_SCF) {
+            return "Envoyé à Service SCF";
+        } else if (ancien == StatutDecompte.REJETE_BCP_E && nouveau == StatutDecompte.SERVICE_SCF) {
+            return "Envoyé à Service SCF";
         } else if (ancien == StatutDecompte.SERVICE_SCF && nouveau == StatutDecompte.BCP) {
             return "Envoyé au bureau BCP";
         } else if (ancien == StatutDecompte.BCP && nouveau == StatutDecompte.ATP) {

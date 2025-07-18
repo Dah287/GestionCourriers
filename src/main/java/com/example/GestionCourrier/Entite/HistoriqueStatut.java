@@ -27,6 +27,8 @@ public class HistoriqueStatut {
     @JsonIgnore
     private Decompte decompte;
 
+
+
     public HistoriqueStatut() {}
 
     public HistoriqueStatut(StatutDecompte ancienStatut, StatutDecompte nouveauStatut, String description, LocalDateTime dateChangement, Decompte decompte) {

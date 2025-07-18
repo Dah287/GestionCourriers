@@ -14,10 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://192.168.1.87:3000")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -31,12 +34,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestParam String matricule,
-                         @RequestParam String password,
-                         @RequestParam String username,
-                         @RequestParam Role role) {
-        return userService.registerUser(matricule,username, password, role); // modifié ici
+    public User register(@RequestBody User user) {
+        return userService.registerUser(
+                user.getMatricule(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getRole(),
+                user.getEntite(),
+                user.getService(),
+                user.getBureau()
+        );
     }
+
 
 
 
@@ -80,4 +89,25 @@ public class AuthController {
     public String hello() {
         return "Bienvenue !";
     }
+
+    // 🔹 Récupérer tous les utilisateurs
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.findAll();
+    }
+
+    // 🔹 Mettre à jour un utilisateur existant
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+        Optional <User> userOpt = userService.updateUser(id, updatedUser);
+        return userOpt.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    // 🔹 Supprimer un utilisateur
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
