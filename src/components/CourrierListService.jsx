@@ -54,7 +54,7 @@ const CourrierListService = () => {
   const [courriers, setCourriers] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -75,6 +75,7 @@ const idUser = localStorage.getItem('id_user');
 const role = localStorage.getItem('role');
 const service = localStorage.getItem('service');
 const bureau = localStorage.getItem('bureau');
+const matricule = localStorage.getItem('matricule');
   // Charger les données depuis l'API
   const fetchCourriers = async () => {
     setLoading(true);
@@ -333,13 +334,13 @@ const bureauxDisponibles = selectedRow
         </Toolbar>
       </AppBar>
 
-      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-        <Container maxWidth="xl">
+<Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+  <Container maxWidth="xl">
     <Tabs
       value={activeTab}
       onChange={(_, newValue) => {
-        if (newValue === 0) navigate('/courriers/Service');
-        if (newValue === 2) navigate('/decomptes/scf');
+        if (newValue === 1) navigate('/decomptes/scf');
+        // if (newValue === 2) navigate('/dashboard');
         setActiveTab(newValue);
       }}
       aria-label="navigation tabs"
@@ -353,41 +354,24 @@ const bureauxDisponibles = selectedRow
       }}
     >
       <Tab 
-        icon={<Dashboard />} 
-        label="Tableau de Bord" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
         icon={<Mail />} 
         label="Gestion Courriers" 
         iconPosition="start" 
         sx={{ mr: 2 }} 
       />
-      <Tab 
-        icon={<AccountBalance />} 
-        label="Suivi Décomptes" 
-        iconPosition="start" 
-        sx={{
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '80%',
-            height: 3,
-            bgcolor: 'primary.main',
-            borderRadius: '3px 3px 0 0',
-            opacity: activeTab === 2 ? 1 : 0,
-            transition: 'opacity 0.3s'
-          }
-        }}
-      />
+
+      {matricule === '7801' && (
+        <Tab 
+          icon={<AccountBalance />} 
+          label="Suivi Décomptes" 
+          iconPosition="start" 
+          sx={{ mr: 2 }} 
+        />
+      )}
     </Tabs>
-        </Container>
-      </Paper> */}
+  </Container>
+</Paper>
+
 
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -524,45 +508,70 @@ const bureauxDisponibles = selectedRow
         </Menu>
 
         {/* Dialog sélection bureau */}
-        <Dialog open={openBureauDialog} onClose={() => setOpenBureauDialog(false)} >
-          <DialogTitle>
-  {selectedBureaux.length <= 1
-    ? "Transférer le courrier"
-    : "Dupliquer et transférer le courrier"}
-</DialogTitle>
-
-          <DialogContent>
-           <FormControl fullWidth sx={{ mt: 2, minWidth: 450 }}>
-  <InputLabel id="select-bureau-label">Bureaux</InputLabel>
-  <Select
-    labelId="select-bureau-label"
-    multiple
-    value={selectedBureaux}
-    onChange={(e) => setSelectedBureaux(e.target.value)}
-    label="Bureaux"
-    renderValue={(selected) => selected.join(', ')} // affichage sélection
-  >
-    {bureauxDisponibles.map((bureau, index) => (
-      <MenuItemSelect key={index} value={bureau}>
-        {bureau}
-      </MenuItemSelect>
-    ))}
-  </Select>
-</FormControl>
-
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenBureauDialog(false)}>Annuler</Button>
-<Button
-  variant="contained"
-  onClick={handleConfirmTransferToBureau}
-  disabled={selectedBureaux.length === 0}
+<Dialog
+  open={openBureauDialog}
+  onClose={() => setOpenBureauDialog(false)}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 3,
+      p: 2,
+    }
+  }}
 >
-  Confirmer
-</Button>
+  <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.3rem' }}>
+    {selectedBureaux.length <= 1
+      ? "Transférer le courrier"
+      : "Dupliquer et transférer le courrier"}
+  </DialogTitle>
 
-          </DialogActions>
-        </Dialog>
+  <DialogContent dividers sx={{ mt: 1 }}>
+    <FormControl fullWidth>
+      <InputLabel id="select-bureau-label">Bureaux</InputLabel>
+      <Select
+        labelId="select-bureau-label"
+        multiple
+        value={selectedBureaux}
+        onChange={(e) => setSelectedBureaux(e.target.value)}
+        label="Bureaux"
+        renderValue={(selected) => (
+          <Box sx={{ whiteSpace: 'pre-line' }}>
+            {selected.map((val) => `• ${val}`).join('\n')}
+          </Box>
+        )}
+        sx={{
+          minHeight: 100,
+          backgroundColor: "#f5f5f5",
+          borderRadius: 1,
+          '& .MuiSelect-select': {
+            padding: 2,
+          }
+        }}
+      >
+        {bureauxDisponibles.map((bureau, index) => (
+          <MenuItem key={index} value={bureau}>
+            {bureau}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </DialogContent>
+
+  <DialogActions sx={{ p: 2 }}>
+    <Button onClick={() => setOpenBureauDialog(false)} color="inherit">
+      Annuler
+    </Button>
+    <Button
+      variant="contained"
+      onClick={handleConfirmTransferToBureau}
+      disabled={selectedBureaux.length === 0}
+    >
+      Confirmer
+    </Button>
+  </DialogActions>
+</Dialog>
+
       </Box>
     </Box>
   );

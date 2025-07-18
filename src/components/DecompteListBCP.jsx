@@ -53,7 +53,7 @@ const DecompteListBCP = () => {
     const [decomptesATP, setDecomptesATP] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(1);
 const [anchorElBCP, setAnchorElBCP] = useState(null);
 const [anchorElATP, setAnchorElATP] = useState(null);
 const [selectedRowBCP, setSelectedRowBCP] = useState(null);
@@ -331,7 +331,7 @@ const handleLogout = () => {
   localStorage.clear();
 
   // Rediriger vers la page de login
-  navigate("/login1");
+  navigate("/login");
 };
 
 
@@ -340,7 +340,7 @@ const handleLogout = () => {
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor: "primary.main", boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
@@ -360,13 +360,13 @@ const handleLogout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-        <Container maxWidth="xl">
+     <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+  <Container maxWidth="xl">
     <Tabs
       value={activeTab}
       onChange={(_, newValue) => {
-        if (newValue === 0) navigate('/decomptes/bcp');
-        if (newValue === 1) navigate('/courriers/Bureau');
+        if (newValue === 0) navigate('/courriers/Bureau');
+        //if (newValue === 2) navigate('/dashbord');
         setActiveTab(newValue);
       }}
       aria-label="navigation tabs"
@@ -379,42 +379,21 @@ const handleLogout = () => {
         },
       }}
     >
-      <Tab 
-        icon={<Dashboard />} 
-        label="Tableau de Bord" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<Mail />} 
-        label="Gestion Courriers" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<AccountBalance />} 
-        label="Suivi Décomptes" 
-        iconPosition="start" 
-        sx={{
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '80%',
-            height: 3,
-            bgcolor: 'primary.main',
-            borderRadius: '3px 3px 0 0',
-            opacity: activeTab === 2 ? 1 : 0,
-            transition: 'opacity 0.3s'
-          }
-        }}
-      />
+            <Tab 
+              icon={<Mail />} 
+              label="Gestion Courriers" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+            <Tab 
+              icon={<AccountBalance />} 
+              label="Suivi Décomptes" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
     </Tabs>
-        </Container>
-      </Paper> */}
+  </Container>
+</Paper>
       
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -433,7 +412,7 @@ const handleLogout = () => {
               </IconButton>
             </Tooltip>
             <Button 
-            sx={{ bgcolor:'#2e7d32'}}
+            sx={{ bgcolor: "primary.main"}}
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleAddDecompte}

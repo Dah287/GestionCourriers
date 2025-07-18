@@ -46,7 +46,7 @@ const DecompteServiceSCF = () => {
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(1);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -221,7 +221,7 @@ const getStatusColor = (status) => {
   localStorage.clear();
 
   // Rediriger vers la page de login
-  navigate("/login1");
+  navigate("/login");
 };
 
 
@@ -265,61 +265,40 @@ const getStatusColor = (status) => {
         </Toolbar>
       </AppBar>
 
-      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-        <Container maxWidth="xl">
-    <Tabs
-      value={activeTab}
-      onChange={(_, newValue) => {
-        if (newValue === 0) navigate('/decomptes/scf');
-        if (newValue === 1) navigate('/courriers/Service');
-        setActiveTab(newValue);
-      }}
-      aria-label="navigation tabs"
-      sx={{
-        "& .MuiTab-root": {
-          minHeight: 64,
-          textTransform: "none",
-          fontSize: "1rem",
-          fontWeight: 500,
-        },
-      }}
-    >
-      <Tab 
-        icon={<Dashboard />} 
-        label="Tableau de Bord" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<Mail />} 
-        label="Gestion Courriers" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<AccountBalance />} 
-        label="Suivi Décomptes" 
-        iconPosition="start" 
-        sx={{
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '80%',
-            height: 3,
-            bgcolor: 'primary.main',
-            borderRadius: '3px 3px 0 0',
-            opacity: activeTab === 2 ? 1 : 0,
-            transition: 'opacity 0.3s'
-          }
-        }}
-      />
-    </Tabs>
-        </Container>
-      </Paper> */}
+ <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+   <Container maxWidth="xl">
+     <Tabs
+       value={activeTab}
+       onChange={(_, newValue) => {
+         if (newValue === 0) navigate('/courriers/Service');
+         //if (newValue === 2) navigate('/dashbord');
+         setActiveTab(newValue);
+       }}
+       aria-label="navigation tabs"
+       sx={{
+         "& .MuiTab-root": {
+           minHeight: 64,
+           textTransform: "none",
+           fontSize: "1rem",
+           fontWeight: 500,
+         },
+       }}
+     >
+             <Tab 
+               icon={<Mail />} 
+               label="Gestion Courriers" 
+               iconPosition="start" 
+               sx={{ mr: 2 }} 
+             />
+             <Tab 
+               icon={<AccountBalance />} 
+               label="Suivi Décomptes" 
+               iconPosition="start" 
+               sx={{ mr: 2 }} 
+             />
+     </Tabs>
+   </Container>
+ </Paper>
       
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -338,7 +317,7 @@ const getStatusColor = (status) => {
               </IconButton>
             </Tooltip>
             <Button 
-             sx={{ bgcolor:'#2e7d32'}}
+             sx={{ bgcolor: "primary.main"}}
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleAddDecompte}

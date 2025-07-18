@@ -50,7 +50,7 @@ const DecompteList = () => {
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(1);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -250,7 +250,7 @@ const getStatusColor = (status) => {
 
 const handleViewHistorique = async (id) => {
   try {
-    const response = await fetch(`http://192.168.1.44:8080/api/decomptes/${id}/historique`);
+    const response = await fetch(`http://192.168.1.86:8080/api/decomptes/${id}/historique`);
     if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
     
     const data = await response.json();
@@ -269,7 +269,7 @@ const handleLogout = () => {
   localStorage.clear();
 
   // Rediriger vers la page de login
-  navigate("/login1");
+  navigate("/login");
 };
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
@@ -277,7 +277,7 @@ const handleLogout = () => {
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor: "primary.main", boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
@@ -297,31 +297,25 @@ const handleLogout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
-        <Container maxWidth="xl">
-          <Tabs
-            value={activeTab}
-            onChange={(_, newValue) => {
-              if (newValue === 1) navigate('/courriers');
-              if (newValue === 0) navigate('/dashbord');
-              setActiveTab(newValue);
-            }}
-            aria-label="navigation tabs"
-            sx={{
-              "& .MuiTab-root": {
-                minHeight: 64,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Tab 
-              icon={<Dashboard />} 
-              label="Tableau de Bord" 
-              iconPosition="start" 
-              sx={{ mr: 2 }} 
-            />
+<Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+  <Container maxWidth="xl">
+    <Tabs
+      value={activeTab}
+      onChange={(_, newValue) => {
+        if (newValue === 0) navigate('/courriers');
+        //if (newValue === 2) navigate('/dashbord');
+        setActiveTab(newValue);
+      }}
+      aria-label="navigation tabs"
+      sx={{
+        "& .MuiTab-root": {
+          minHeight: 64,
+          textTransform: "none",
+          fontSize: "1rem",
+          fontWeight: 500,
+        },
+      }}
+    >
             <Tab 
               icon={<Mail />} 
               label="Gestion Courriers" 
@@ -334,9 +328,9 @@ const handleLogout = () => {
               iconPosition="start" 
               sx={{ mr: 2 }} 
             />
-          </Tabs>
-        </Container>
-      </Paper> */}
+    </Tabs>
+  </Container>
+</Paper>
       
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -355,7 +349,7 @@ const handleLogout = () => {
               </IconButton>
             </Tooltip>
             <Button 
-             sx={{ bgcolor:'#2e7d32'}}
+             sx={{ bgcolor: "primary.main"}}
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleAddDecompte}

@@ -36,9 +36,13 @@ import {
   Dashboard,
   Warning as WarningIcon
 } from '@mui/icons-material';
+import HistoryIcon from '@mui/icons-material/History';
+
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';
 import useAutoLogout from './Authentification/useAutoLogout';
+import GavelIcon from '@mui/icons-material/Gavel';
+import PersonIcon from '@mui/icons-material/Person';
 
 const DashboardCourrires = () => {
         useAutoLogout(); // ✅ Doit être au tout début du composant
@@ -234,8 +238,10 @@ const getStatusColor = (status) => {
     <Tabs
       value={activeTab}
       onChange={(_, newValue) => {
-        if (newValue === 1) navigate('/dashbord');
-        if (newValue === 2) navigate('/dashbord');
+        if (newValue === 1) navigate('/dashbord/decomptes');
+        if (newValue === 2) navigate('/historique/dashbord');
+          if (newValue === 3) navigate('/marche');
+           if (newValue === 4) navigate('/user');
         setActiveTab(newValue);
       }}
       aria-label="navigation tabs"
@@ -248,39 +254,37 @@ const getStatusColor = (status) => {
         },
       }}
     >
-      <Tab 
-        icon={<Dashboard />} 
-        label="Tableau de Bord" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<Mail />} 
-        label="Gestion Courriers" 
-        iconPosition="start" 
-        sx={{ mr: 2 }} 
-      />
-      <Tab 
-        icon={<AccountBalance />} 
-        label="Suivi Décomptes" 
-        iconPosition="start" 
-        sx={{
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '80%',
-            height: 3,
-            bgcolor: 'primary.main',
-            borderRadius: '3px 3px 0 0',
-            opacity: activeTab === 2 ? 1 : 0,
-            transition: 'opacity 0.3s'
-          }
-        }}
-      />
+            <Tab 
+              icon={<Mail />} 
+              label="Tableau de Bord Gestion Courriers" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+            <Tab 
+              icon={<AccountBalance />} 
+              label="Tableau de Bord Suivi Décomptes" 
+              iconPosition="start" 
+              sx={{ mr: 2 }} 
+            />
+
+            <Tab 
+  icon={<HistoryIcon />} 
+  label="Historique Courrier" 
+  iconPosition="start" 
+  sx={{ mr: 2 }} 
+/>
+                <Tab 
+                icon={<GavelIcon />} 
+                label="Gestion des Marchés" 
+                iconPosition="start" 
+                sx={{ mr: 2 }} 
+                />
+                <Tab
+  icon={<PersonIcon />}
+  label="Utilisateurs"
+  iconPosition="start"
+  sx={{ mr: 2 }}
+/>
     </Tabs>
   </Container>
 </Paper>

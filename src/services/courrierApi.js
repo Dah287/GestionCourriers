@@ -1,9 +1,11 @@
 // src/services/courrierApi.js
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.44:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
-const API_URL2 = 'http://192.168.1.44:8080/api/decomptes'; 
-const API_URL3 = 'http://192.168.1.44:8080/api/marches'; 
+const API_URL = 'http://192.168.1.86:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
+const API_URL2 = 'http://192.168.1.86:8080/api/decomptes'; 
+const API_URL3 = 'http://192.168.1.86:8080/api/marches';
+const API_URL4 = 'http://192.168.1.86:8080/api';  
+const API_URL5 = 'http://192.168.1.86:8080/auth';
 const getCourrier = (id) => {
   return axios.get(`${API_URL}/${id}`);
 };
@@ -158,6 +160,14 @@ const updateStatut = (id, data) => {
   console.log("data :",data)
   return axios.put(`${API_URL2}/${id}/statut`, data);
 };
+const updateMarche = (id, marcheData) => {
+  return axios.put(`${API_URL3}/${id}`, marcheData);
+};
+const deleteMarche = (id) => {
+  return axios.delete(`${API_URL3}/${id}`);
+};
+
+
 
 // 🌟 Gestion des Marchés
 
@@ -174,7 +184,27 @@ const transfertMultiple= (id, bureaux) =>{
     bureaux: bureaux,
   });
 }
+// CRUD USER 
+// 🔹 Récupérer tous les utilisateurs
+const getAllUsers = () => {
+  return axios.get(`${API_URL5}`);
+};
 
+// 🔹 Créer un nouvel utilisateur
+const createUser = (user) => {
+  return axios.post(`${API_URL5}/register`, user);
+};
+
+
+// 🔹 Mettre à jour un utilisateur
+const updateUser = (id, userData) => {
+  return axios.put(`${API_URL5}/${id}`, userData);
+};
+
+// 🔹 Supprimer un utilisateur
+const deleteUser = (id) => {
+  return axios.delete(`${API_URL5}/${id}`);
+};
 
 
 const courrierApi = {
@@ -225,8 +255,15 @@ const courrierApi = {
   //
     // ✅ nouvelle fonction
   createMarche    ,    // ✅ nouvelle fonction
+  updateMarche,
+  deleteMarche ,
   //
-transfertMultiple
+transfertMultiple,
+// crud user 
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser
 };
 
 export default courrierApi;

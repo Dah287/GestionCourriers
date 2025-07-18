@@ -14,17 +14,9 @@ const useAutoLogout = () => {
 const resetTimer = () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
-    const login = localStorage.getItem('login');
-    if (login === "login") {
-      // login correct => rester sur la page, gérer couleur verte ici
+   // const login = localStorage.getItem('login');
            localStorage.clear();
       navigate('/'); 
-      // Par exemple, mettre une classe css ou un état pour afficher en vert
-    } else {
-      // login absent ou différent => redirection vers /login1
-      localStorage.clear();
-      navigate('/login1'); // redirection vers /login1
-    }
   }, 10 * 60 * 1000); // 10 minutes
 };
 

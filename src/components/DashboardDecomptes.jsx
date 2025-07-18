@@ -40,9 +40,13 @@ import {
   Logout ,
   Dashboard
 } from '@mui/icons-material';
+import HistoryIcon from '@mui/icons-material/History';
+
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';
 import useAutoLogout from './Authentification/useAutoLogout';
+import GavelIcon from '@mui/icons-material/Gavel';
+import PersonIcon from '@mui/icons-material/Person';
 
 const DashboardDecomptes = () => {
       useAutoLogout(); // ✅ Doit être au tout début du composant
@@ -50,7 +54,7 @@ const DashboardDecomptes = () => {
   const [decomptes, setDecomptes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(1);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -253,7 +257,7 @@ const getStatusColor = (status) => {
 
 const handleViewHistorique = async (id) => {
   try {
-    const response = await fetch(`http://192.168.1.44:8080/api/decomptes/${id}/historique`);
+    const response = await fetch(`http://192.168.1.86:8080/api/decomptes/${id}/historique`);
     if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
     
     const data = await response.json();
@@ -282,7 +286,7 @@ const handleLogout = () => {
   localStorage.clear();
 
   // Rediriger vers la page de login
-  navigate("/login1");
+  navigate("/login");
 };
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
@@ -290,7 +294,7 @@ const handleLogout = () => {
 
   return (
     <Box>
-      <AppBar position="static" sx={{ bgcolor:'#2e7d32', boxShadow: 3 }}>
+      <AppBar position="static" sx={{ bgcolor: "primary.main", boxShadow: 3 }}>
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AttachMoney sx={{ mr: 2, fontSize: 32 }} />
@@ -310,13 +314,15 @@ const handleLogout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
+      <Paper sx={{ bgcolor: "white", boxShadow: 2 }}>
         <Container maxWidth="xl">
           <Tabs
             value={activeTab}
             onChange={(_, newValue) => {
-              if (newValue === 1) navigate('/courriers');
+              if (newValue === 2) navigate('/historique/dashbord');
               if (newValue === 0) navigate('/dashbord');
+              if (newValue === 3) navigate('/marche');
+               if (newValue === 4) navigate('/user');
               setActiveTab(newValue);
             }}
             aria-label="navigation tabs"
@@ -329,27 +335,46 @@ const handleLogout = () => {
               },
             }}
           >
-            <Tab 
+            {/* <Tab 
               icon={<Dashboard />} 
-              label="Tableau de Bord" 
+              label="Tableau de Bord Gestion Courriers" 
               iconPosition="start" 
               sx={{ mr: 2 }} 
-            />
+            /> */}
             <Tab 
               icon={<Mail />} 
-              label="Gestion Courriers" 
+              label="Tableau de Bord Gestion Courriers" 
               iconPosition="start" 
               sx={{ mr: 2 }} 
             />
             <Tab 
               icon={<AccountBalance />} 
-              label="Suivi Décomptes" 
+              label="Tableau de Bord Suivi Décomptes" 
               iconPosition="start" 
               sx={{ mr: 2 }} 
             />
+            <Tab 
+  icon={<HistoryIcon />} 
+  label="Historique Décomptes" 
+  iconPosition="start" 
+  sx={{ mr: 2 }} 
+/>
+                <Tab 
+                icon={<GavelIcon />} 
+                label="Gestion des Marchés" 
+                iconPosition="start" 
+                sx={{ mr: 2 }} 
+                />
+
+                <Tab
+  icon={<PersonIcon />}
+  label="Utilisateurs"
+  iconPosition="start"
+  sx={{ mr: 2 }}
+/>
           </Tabs>
         </Container>
-      </Paper> */}
+      </Paper>
       
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -368,7 +393,7 @@ const handleLogout = () => {
               </IconButton>
             </Tooltip>
             <Button 
-             sx={{ bgcolor:'#2e7d32'}}
+             sx={{ bgcolor: "primary.main"}}
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleAddDecompte}
@@ -547,7 +572,7 @@ const handleLogout = () => {
           <MenuItem onClick={handleEditDecompte}>Modifier</MenuItem>
           <Divider />
           <MenuItem onClick={handleTransferToSCF}
-           disabled={selectedRow?.status !== 'EN_ATTENTE'}
+           //disabled={selectedRow?.status !== 'EN_ATTENTE'}
           >Transférer au SCF</MenuItem>
           <Divider />
           <MenuItem onClick={handleDeleteDecompte} sx={{ color: 'error.main' }}>Supprimer</MenuItem>

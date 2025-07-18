@@ -26,7 +26,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://192.168.1.44:8080/auth/login', {
+      const response = await fetch('http://192.168.1.86:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -48,19 +48,23 @@ const LoginPage = () => {
       localStorage.setItem('role', data.role);
       localStorage.setItem('service', data.service);
       localStorage.setItem('bureau', data.bureau);
-        localStorage.setItem('login', "login");
+        //localStorage.setItem('login', "login");
+        localStorage.setItem('matricule', data.username);
 
-      login(); // ➤ Marque comme authentifié
+      login(); // ➤ Marque comme authentifiés
 
       // ➤ Redirection selon le rôle
       switch (data.role) {
         case 'ADMIN':
           navigate('/dashbord');
           break;
-        case 'SECRETARIAT':
+        case 'SECRETARIAT_DPF':
           navigate('/courriers');
           break;
         case 'CHEF_SERVICE':
+          navigate('/courriers/Service');
+          break;
+        case 'SECRETARIAT':
           navigate('/courriers/Service');
           break;
         case 'CHEF_BUREAU':
@@ -106,10 +110,10 @@ const LoginPage = () => {
         <LockOutlined fontSize="large" />
       </Avatar>
       <Typography variant="h4" sx={{ fontWeight: 700 }}>
-        Connexion
+        GDC
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-        Accédez à votre application de gestion des courriers
+        Accédez à votre application GDC
       </Typography>
     </Box>
 
