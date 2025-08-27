@@ -1,11 +1,11 @@
 // src/services/courrierApi.js
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.86:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
-const API_URL2 = 'http://192.168.1.86:8080/api/decomptes'; 
-const API_URL3 = 'http://192.168.1.86:8080/api/marches';
-const API_URL4 = 'http://192.168.1.86:8080/api';  
-const API_URL5 = 'http://192.168.1.86:8080/auth';
+const API_URL = 'http://192.168.1.68:8080/api/courriers'; // **IMPORTANT: Replace with your actual backend API URL for courriers**
+const API_URL2 = 'http://192.168.1.68:8080/api/decomptes'; 
+const API_URL3 = 'http://192.168.1.68:8080/api/marches';
+const API_URL4 = 'http://192.168.1.68:8080/api';  
+const API_URL5 = 'http://192.168.1.68:8080/auth';
 const getCourrier = (id) => {
   return axios.get(`${API_URL}/${id}`);
 };
@@ -60,6 +60,12 @@ const updateDateReceptionRATP= (id) => {
 const updateDateReceptioTraite = (id) => {
   return axios.put(`${API_URL}/update-status-traite/${id}`);
 };
+const updateDateReceptioTraite3 = (id) => {
+  return axios.put(`${API_URL}/update-status-traite3/${id}`);
+};
+const updateDateReceptioTraite1 = (id) => {
+  return axios.put(`${API_URL}/update-status-traite-d/${id}`);
+};
 
 // Nouvelle méthode pour mettre à jour le bureau
 const updateStatusBureau = (id, bureau) => {
@@ -104,6 +110,12 @@ const deleteDecompte = (id) => {
 //PDF Rapport
 const downloadDecomptePdf = (id) => {
   return axios.get(`${API_URL2}/${id}/export/pdf`, {
+    responseType: 'blob'
+  });
+};
+//PDF Rapport
+const downloadDecomptePdf1 = (id) => {
+  return axios.get(`${API_URL}/${id}/exportt/pdf`, {
     responseType: 'blob'
   });
 };
@@ -215,6 +227,8 @@ const courrierApi = {
   getAllCourriers,
   updateDateReceptionService,
   updateDateReceptioTraite,
+   updateDateReceptioTraite3,
+   updateDateReceptioTraite1,
   getCourriersParEntite,
   updateStatusBureau,
   getCourriersParEntite2,
@@ -252,6 +266,7 @@ const courrierApi = {
 
   //
   downloadDecomptePdf,
+    downloadDecomptePdf1,
   //
     // ✅ nouvelle fonction
   createMarche    ,    // ✅ nouvelle fonction

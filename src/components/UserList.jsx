@@ -188,14 +188,14 @@ const UserList = () => {
             />
             <Tab 
               icon={<AccountBalance />} 
-              label="Tableau de Bord Suivi Décomptes" 
+              label="Tableau de Bord Gestion Décomptes" 
               iconPosition="start" 
               sx={{ mr: 2 }} 
             />
 
             <Tab 
             icon={<HistoryIcon />} 
-            label="Historique Courrier" 
+            label="Historique Décomptes" 
             iconPosition="start" 
             sx={{ mr: 2 }} 
             />

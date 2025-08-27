@@ -250,7 +250,7 @@ const getStatusColor = (status) => {
 
 const handleViewHistorique = async (id) => {
   try {
-    const response = await fetch(`http://192.168.1.86:8080/api/decomptes/${id}/historique`);
+    const response = await fetch(`http://192.168.1.68:8080/api/decomptes/${id}/historique`);
     if (!response.ok) throw new Error('Erreur lors du chargement de l’historique');
     
     const data = await response.json();

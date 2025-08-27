@@ -231,6 +231,25 @@ const matricule = localStorage.getItem('matricule');
     }
   };
 
+    const handleMarkAsTreated3 = async () => {
+    if (!selectedRow) return;
+
+    const isConfirmed = window.confirm(
+      `Voulez-vous vraiment marquer le courrier ${selectedRow.numeroOrdre} ("${selectedRow.objet}") comme traité ?`
+    );
+
+    if (!isConfirmed) return;
+
+    try {
+      await courrierApi.updateDateReceptioTraite3(selectedRow.id);
+      alert(`Le courrier ${selectedRow.numeroOrdre} a été marqué comme traité.`);
+      handleMenuClose();
+      await fetchCourriers();
+    } catch (err) {
+      alert(`Échec du marquage du courrier ${selectedRow.numeroOrdre} comme traité.`);
+    }
+  };
+
 const getStatusColor = (status) => {
   switch (status) {
     case 'TRAITE':
@@ -461,7 +480,7 @@ const getStatusColor = (status) => {
           </MenuItem>
           <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
           <Divider />
-          <MenuItem onClick={handleOpenBureauDialog}>Transférer au DPF</MenuItem>
+          <MenuItem onClick={handleMarkAsTreated3}>Transférer au Service</MenuItem>
           <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>
           <Divider />
           <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem>

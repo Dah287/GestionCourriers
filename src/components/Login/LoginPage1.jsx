@@ -26,7 +26,7 @@ const LoginPage1 = () => {
     setError('');
 
     try {
-      const response = await fetch('http://192.168.1.86:8080/auth/login', {
+      const response = await fetch('http://192.168.1.68:8080/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ matricule, password }),

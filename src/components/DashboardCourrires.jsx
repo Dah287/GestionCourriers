@@ -121,6 +121,23 @@ const DashboardCourrires = () => {
     }
   };
 
+    const handleDownloadDecomptePdf = async (id) => {
+  try {
+    const response = await courrierApi.downloadDecomptePdf1(id);
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Courriers_${id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement du PDF :", error);
+  }
+};
+
   const handleTransferToService = async () => {
     if (!selectedRow) return;
     const isConfirmed = window.confirm(`Transférer ${selectedRow.numeroOrdre} au service ?`);
@@ -136,14 +153,14 @@ const DashboardCourrires = () => {
     }
   };
 
-  const handleMarkAsTreated = async () => {
+  const handleMarkAsTreated1 = async () => {
     if (!selectedRow) return;
-    const isConfirmed = window.confirm(`Marquer ${selectedRow.numeroOrdre} comme traité ?`);
+    const isConfirmed = window.confirm(`Marquer ${selectedRow.numeroOrdre} comme traité Définitivement?`);
     if (!isConfirmed) return;
 
     try {
-      await courrierApi.updateDateReceptioTraite(selectedRow.id);
-      alert("Marqué comme traité.");
+      await courrierApi.updateDateReceptioTraite1(selectedRow.id);
+      alert("Marqué comme traité Définitivement.");
       handleMenuClose();
       await fetchCourriers();
     } catch (err) {
@@ -157,12 +174,16 @@ const getStatusLabel = (status) => {
       return 'Envoyé au service';
     case 'RECU_BUREAU':
       return 'Envoyé au bureau';
+    case 'BUREAU_SERVICE':               // ✅ Nouveau statut
+      return 'Réponse bureau';
     case 'TRAITE':
       return 'Courrier traité';
+    case 'TRAITE_D':
+      return 'Courrier traité définitivement';
     case 'REJETE':
       return 'Rejeté';
     case 'EN_ATTENTE':
-      return 'En attente d\'envoi';
+      return "En attente d'envoi";
     default:
       return status;
   }
@@ -172,10 +193,14 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'TRAITE':
       return 'success'; // vert
+    case 'TRAITE_D':
+      return 'primary'; // bleu foncé
     case 'RECU_SERVICE':
       return 'info'; // bleu clair
     case 'RECU_BUREAU':
       return 'secondary'; // violet/gris
+    case 'BUREAU_SERVICE':               // ✅ Couleur différente
+      return 'purple'; // ou 'secondary' si tu veux rester dans MUI
     case 'REJETE':
       return 'error'; // rouge
     case 'EN_ATTENTE':
@@ -184,6 +209,8 @@ const getStatusColor = (status) => {
       return 'default'; // gris
   }
 };
+
+
 
 
   const formatDate = (dateString) => {
@@ -262,14 +289,14 @@ const getStatusColor = (status) => {
             />
             <Tab 
               icon={<AccountBalance />} 
-              label="Tableau de Bord Suivi Décomptes" 
+              label="Tableau de Bord Gestion Décomptes" 
               iconPosition="start" 
               sx={{ mr: 2 }} 
             />
 
             <Tab 
   icon={<HistoryIcon />} 
-  label="Historique Courrier" 
+  label="Historique Décomptes" 
   iconPosition="start" 
   sx={{ mr: 2 }} 
 />
@@ -292,12 +319,12 @@ const getStatusColor = (status) => {
       {/* Statistiques */}
       <Box sx={{ p: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         {[
-          { label: 'En attente', status: 'EN_ATTENTE' },
-          { label: 'Réception service en cours', status: 'RECU_SERVICE' },
-          { label: 'Réception bureau en cours', status: 'RECU_BUREAU' },
-          { label: 'Traité', status: 'TRAITE' },
-          { label: 'Rejeté', status: 'REJETE' },
-          { label: 'Total', status: null }
+          { label: 'Courrier envoyé au service', status: 'RECU_SERVICE' },
+          { label: 'Courrier Traité', status: 'TRAITE' },
+          { label: 'Courrier traité définitivement', status: 'TRAITE_D' },         
+          { label: 'Courrier dépassant la deadline', status: 'REJETE' },
+
+          { label: 'Dossier en cours', status: null }
         ].map(({ label, status }) => (
           <Paper
             key={label}
@@ -310,7 +337,9 @@ const getStatusColor = (status) => {
             }}
             onClick={() => handleStatusCardClick(status)}
           >
-            <Typography variant="subtitle2">{label}</Typography>
+            <Typography variant="subtitle2"
+              sx={{ fontSize: '1.1rem' }}
+            >{label}</Typography>
             <Typography variant="h4">
               {status
                 ? courriers.filter(c => c.status === status).length
@@ -350,16 +379,21 @@ const getStatusColor = (status) => {
                   <TableCell>Type</TableCell>
                   <TableCell>Expéditeur</TableCell>
                   <TableCell>Objet</TableCell>
-                  <TableCell>Entité</TableCell>
-                  <TableCell>Service</TableCell>
-                  <TableCell>Statut</TableCell>
-                  <TableCell>Date arrivée</TableCell>
-                  <TableCell>Urgent</TableCell>
+                  {/* <TableCell>Entité</TableCell> */}
+             
+                    <TableCell>Date arrivée</TableCell>
+            <TableCell>Service  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+
+                
+                
                   <TableCell>Délais</TableCell>
-                  <TableCell>Date Envoi</TableCell>
-                  <TableCell>Date Réception Service</TableCell>
-                  <TableCell>Date Réception Bureau</TableCell>
+                  <TableCell>Urgent</TableCell>
+                
+               
+                 
+                 <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
                   <TableCell>Date Traitement</TableCell>
+                    <TableCell>Statut</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -372,22 +406,53 @@ const getStatusColor = (status) => {
                       <TableCell>{row.typeCourrier}</TableCell>
                       <TableCell>{row.entiteExpeditrice}</TableCell>
                       <TableCell>{row.objet}</TableCell>
-                      <TableCell>{row.entiteTransmise}</TableCell>
-                      <TableCell>{row.serviceDestinataire}</TableCell>
+                      {/* <TableCell>{row.entiteTransmise}</TableCell> */}
+             
+                       <TableCell>{formatDate(row.dateArrivee)}</TableCell>
+<TableCell>
+  <div>
+    <strong>Service :</strong> {row.serviceDestinataire}<br />
+    <strong>Date envoi :</strong> {formatDate(row.dateReceptionService)}
+  </div>
+</TableCell>
+                      
+                            
+                      
+                   <TableCell>{row.delaisJours} J</TableCell>  
+                    <TableCell>
+  {row.delaisJours <= 2 ? (
+    <Chip
+      label="Très urgent"
+      size="small"
+      color="error"
+      icon={<WarningIcon />}
+    />
+  ) : row.delaisJours <= 4 ? (
+    <Chip
+      label="Urgent"
+      size="small"
+      color="warning"
+      icon={<WarningIcon />}
+    />
+  ) : null}
+</TableCell>
+
+                      
+                   
                       <TableCell>
+  <div>
+    <strong>Bureau :</strong> {row.bureauRecepteur}<br />
+    <strong>Date envoi :</strong> {formatDate(row.dateReceptionBureau)}
+  </div>
+</TableCell>
+                       <TableCell>{formatDate(row.dateTraitement)}</TableCell>
+                       <TableCell>
                         <Chip
                           label={getStatusLabel(row.status)}
                           size="small"
                           color={getStatusColor(row.status)}
                         />
                       </TableCell>
-                      <TableCell>{formatDate(row.dateArrivee)}</TableCell>
-                      <TableCell>{row.urgent && <WarningIcon color="error" />}</TableCell>
-                      <TableCell>{row.delaisJours} J</TableCell>
-                      <TableCell>{formatDate(row.dateEnvoi)}</TableCell>
-                      <TableCell>{formatDate(row.dateReceptionService)}</TableCell>
-                      <TableCell>{formatDate(row.dateReceptionBureau)}</TableCell>
-                       <TableCell>{formatDate(row.dateTraitement)}</TableCell>
                       <TableCell align="right">
                         <IconButton onClick={(e) => handleMenuClick(e, row)}>
                           <MoreVertIcon />
@@ -415,8 +480,16 @@ const getStatusColor = (status) => {
         <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
         <Divider />
         <MenuItem onClick={handleTransferToService}>Transférer au service</MenuItem>
-        <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>
+        <MenuItem onClick={handleMarkAsTreated1}>Marquer comme traité Définitivement</MenuItem>
         <Divider />
+                  <MenuItem
+                    onClick={() => {
+                      handleDownloadDecomptePdf(selectedRow?.id);
+                      handleMenuClose();
+                    }}
+                  >
+                    Télécharger PDF
+                  </MenuItem>
         <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
       </Menu>
     </Box>

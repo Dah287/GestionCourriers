@@ -105,7 +105,7 @@ const handleEntiteChange = (e) => {
   const [formData, setFormData] = useState(initialFormData);
 
   // Options pour Entité Expéditrice
-  const entitesExpeditrices = ["Direction", "DA", "DDA", "DRH", "DGR", "SMG", "SAICG"];
+  const entitesExpeditrices = ["Direction","DIAEA","DPFP","DF","Province","Réclamation" ,"DA", "DDA", "DRH", "DGR", "SMG", "SAICG"];
 
   // Options pour Entités Transmises
   const entitesTransmisesOptions = [
@@ -171,7 +171,7 @@ const handleEntiteChange = (e) => {
          console.log("New courrier created:", dataToSend);
         alert("Courrier ajouté avec succès !");
       }
-      navigate('/courriers');
+      navigate('/dashbord');
     } catch (error) {
       console.error("Error saving courrier:", error);
       alert("Une erreur est survenue lors de l'enregistrement du courrier.");
@@ -184,7 +184,7 @@ const handleEntiteChange = (e) => {
       try {
         await courrierApi.deleteCourrier(courrierId);
         alert("Courrier supprimé avec succès !");
-        navigate('/courriers');
+        navigate('/dashbord');
       } catch (error) {
         console.error("Error deleting courrier:", error);
         alert("Une erreur est survenue lors de la suppression du courrier.");
@@ -281,7 +281,7 @@ const handleEntiteChange = (e) => {
           <Grid item xs={12} sm={6}sx={{width: "31%",}}>
             <TextField
               fullWidth
-              label="Date Expéditeur"
+              label="Date Expédition"
               name="dateExpediteur"
               type="date"
               InputLabelProps={{ shrink: true }}
@@ -419,15 +419,7 @@ const handleEntiteChange = (e) => {
           </Grid>
                   <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6}>
-            <FormControlLabel
-              control={<Checkbox checked={formData.urgent} onChange={handleChange} name="urgent" color="error" />}
-              label={
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <WarningIcon sx={{ mr: 1, color: "error.main" }} />
-                  Urgent
-                </Box>
-              }
-            />
+
 
               <TextField
                 fullWidth

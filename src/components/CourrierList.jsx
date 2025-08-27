@@ -182,41 +182,36 @@ const handleTransferToService = async () => {
   }
 };
 
-const handleMarkAsTreated = async () => {
-  if (!selectedRow) return;
-  
-  // Ajout de la confirmation avec plus de détails
-  const isConfirmed = window.confirm(
-    `Voulez-vous vraiment marquer le courrier ${selectedRow.numeroOrdre} ("${selectedRow.objet}") comme traité ?`
-  );
-  
-  if (!isConfirmed) return;
+  const handleMarkAsTreated1 = async () => {
+    if (!selectedRow) return;
+    const isConfirmed = window.confirm(`Marquer ${selectedRow.numeroOrdre} comme traité Définitivement?`);
+    if (!isConfirmed) return;
 
-  try {
-    await courrierApi.updateDateReceptioTraite(selectedRow.id);
-    
-    // Message de succès amélioré
-    alert(`Le courrier ${selectedRow.numeroOrdre} a été marqué comme traité.`);
-    
-    handleMenuClose();
-    await fetchCourriers();
-  } catch (err) {
-    console.error("Erreur lors du marquage comme traité:", err);
-    alert(`Échec du marquage du courrier ${selectedRow.numeroOrdre} comme traité.`);
-  }
-};
+    try {
+      await courrierApi.updateDateReceptioTraite1(selectedRow.id);
+      alert("Marqué comme traité Définitivement.");
+      handleMenuClose();
+      await fetchCourriers();
+    } catch (err) {
+      alert("Erreur de traitement.");
+    }
+  };
 const getStatusLabel = (status) => {
   switch (status) {
     case 'RECU_SERVICE':
       return 'Envoyé au service';
     case 'RECU_BUREAU':
       return 'Envoyé au bureau';
+    case 'BUREAU_SERVICE':               // ✅ Nouveau statut
+      return 'Réponse bureau';
     case 'TRAITE':
       return 'Courrier traité';
+    case 'TRAITE_D':
+      return 'Courrier traité définitivement';
     case 'REJETE':
       return 'Rejeté';
     case 'EN_ATTENTE':
-      return 'En attente d\'envoi';
+      return "En attente d'envoi";
     default:
       return status;
   }
@@ -226,10 +221,14 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'TRAITE':
       return 'success'; // vert
+    case 'TRAITE_D':
+      return 'primary'; // bleu foncé
     case 'RECU_SERVICE':
       return 'info'; // bleu clair
     case 'RECU_BUREAU':
       return 'secondary'; // violet/gris
+    case 'BUREAU_SERVICE':               // ✅ Couleur différente
+      return 'purple'; // ou 'secondary' si tu veux rester dans MUI
     case 'REJETE':
       return 'error'; // rouge
     case 'EN_ATTENTE':
@@ -238,6 +237,8 @@ const getStatusColor = (status) => {
       return 'default'; // gris
   }
 };
+
+
 
 
 
@@ -471,9 +472,9 @@ const getStatusColor = (status) => {
           <MenuItem onClick={handleTransferToService}
            disabled={selectedRow?.status !== 'EN_ATTENTE'}
           >Transférer au service</MenuItem>
-          <MenuItem onClick={handleMarkAsTreated}
+          <MenuItem onClick={handleMarkAsTreated1}
           disabled={selectedRow?.status !== 'EN_ATTENTE'}
-          >Marquer comme traité</MenuItem>
+          >Marquer comme traité Définitivement</MenuItem>
           <Divider />
           {/* <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem> */}
         </Menu>
