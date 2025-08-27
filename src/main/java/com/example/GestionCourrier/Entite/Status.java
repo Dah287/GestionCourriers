@@ -6,5 +6,7 @@ public enum Status {
     RECU_SERVICE,
     RECU_BUREAU,
     TRAITE,
-    ARCHIVE
+    ARCHIVE,
+    TRAITE_D,
+    BUREAU_SERVICE
 }

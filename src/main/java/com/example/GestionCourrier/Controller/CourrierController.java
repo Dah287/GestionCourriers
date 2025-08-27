@@ -5,7 +5,9 @@ import com.example.GestionCourrier.Entite.Status;
 import com.example.GestionCourrier.Repository.CourrierRepository;
 import com.example.GestionCourrier.Service.CourrierService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,6 +80,64 @@ public class CourrierController {
 
         return ResponseEntity.ok(courrierRepository.save(courrier));
     }
+    @PutMapping("update-status-traite-d/{id}")
+    public ResponseEntity<Courrier> updateStatusTraited(@PathVariable Long id) {
+        Courrier courrier = courrierRepository.findById(id).orElseThrow();
+
+       // Status ancienStatut = courrier.getStatus();
+        Status nouveauStatut = Status.TRAITE_D;
+
+        courrier.setStatus(nouveauStatut);
+
+//        LocalDate now = LocalDate.now();
+//
+//        if (ancienStatut == Status.RECU_SERVICE) {
+//            courrier.setDateReceptionService(now);
+//            courrier.setDateTraitement(now);
+//        } else if (ancienStatut == Status.RECU_BUREAU) {
+//            courrier.setDateReceptionBureau(now);
+//            courrier.setDateTraitement(now);
+//        } else if (ancienStatut == Status.EN_ATTENTE) {
+//            //courrier.setDateReceptionBureau(now);
+//            courrier.setDateTraitement(now);
+//        }
+//
+//        else {
+//            // Si on ne connaît pas l'ancien statut, on met seulement la date de traitement
+//            courrier.setDateTraitement(now);
+//        }
+
+        return ResponseEntity.ok(courrierRepository.save(courrier));
+    }
+    @PutMapping("update-status-traite3/{id}")
+    public ResponseEntity<Courrier> updateStatusTraited3(@PathVariable Long id) {
+        Courrier courrier = courrierRepository.findById(id).orElseThrow();
+
+        // Status ancienStatut = courrier.getStatus();
+        Status nouveauStatut = Status.BUREAU_SERVICE;
+
+        courrier.setStatus(nouveauStatut);
+
+//        LocalDate now = LocalDate.now();
+//
+//        if (ancienStatut == Status.RECU_SERVICE) {
+//            courrier.setDateReceptionService(now);
+//            courrier.setDateTraitement(now);
+//        } else if (ancienStatut == Status.RECU_BUREAU) {
+//            courrier.setDateReceptionBureau(now);
+//            courrier.setDateTraitement(now);
+//        } else if (ancienStatut == Status.EN_ATTENTE) {
+//            //courrier.setDateReceptionBureau(now);
+//            courrier.setDateTraitement(now);
+//        }
+//
+//        else {
+//            // Si on ne connaît pas l'ancien statut, on met seulement la date de traitement
+//            courrier.setDateTraitement(now);
+//        }
+
+        return ResponseEntity.ok(courrierRepository.save(courrier));
+    }
 
     @PutMapping("update-status-service/{id}")
     public ResponseEntity<Courrier> updateStatusService(@PathVariable Long id) {
@@ -104,13 +164,13 @@ public class CourrierController {
         Courrier courrier = courrierRepository.findById(id).orElseThrow();
 
         Status ancienStatut = courrier.getStatus();
-        Status nouveauStatut = Status.RECU_BUREAU;
+        Status nouveauStatut = Status.BUREAU_SERVICE;
 
         courrier.setBureauRecepteur(bureau);
         courrier.setStatus(nouveauStatut);
 
-        if (ancienStatut == Status.RECU_SERVICE) {
-            courrier.setDateReceptionService(LocalDate.now());
+        if (ancienStatut == Status.RECU_BUREAU) {
+            courrier.setDateReceptionBureau(LocalDate.now());
             //courrier.setDateTraitement(LocalDate.now());
         }
 
@@ -212,5 +272,32 @@ public class CourrierController {
         }
     }
 
+
+    //
+
+    @GetMapping("/{id}/exportt/pdf")
+    public ResponseEntity<byte[]> exportSingleCourrierPdf(@PathVariable Long id) {
+        try {
+            // Générer le PDF à partir de l'ID
+            byte[] pdfBytes = courrierService.generateCourrierPdf(id);
+
+            // Configurer les headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "courrier_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            // Retourner le PDF dans le corps de la réponse
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            // Si le courrier n'existe pas ou erreur
+            if (e instanceof java.util.NoSuchElementException) {
+                return ResponseEntity.notFound().build();
+            }
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 }
