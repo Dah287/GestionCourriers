@@ -43,6 +43,7 @@ import courrierApi from '../services/courrierApi';
 import useAutoLogout from './Authentification/useAutoLogout';
 import GavelIcon from '@mui/icons-material/Gavel';
 import PersonIcon from '@mui/icons-material/Person';
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 const DashboardCourrires = () => {
         useAutoLogout(); // ✅ Doit être au tout début du composant
@@ -170,11 +171,13 @@ const DashboardCourrires = () => {
 
 const getStatusLabel = (status) => {
   switch (status) {
+    case 'RECU':
+      return 'Courrier reçu'; // ✅ nouveau
     case 'RECU_SERVICE':
       return 'Envoyé au service';
     case 'RECU_BUREAU':
       return 'Envoyé au bureau';
-    case 'BUREAU_SERVICE':               // ✅ Nouveau statut
+    case 'BUREAU_SERVICE':
       return 'Réponse bureau';
     case 'TRAITE':
       return 'Courrier traité';
@@ -189,8 +192,11 @@ const getStatusLabel = (status) => {
   }
 };
 
+
 const getStatusColor = (status) => {
   switch (status) {
+    case 'RECU':
+      return 'warning'; // ✅ jaune/orange
     case 'TRAITE':
       return 'success'; // vert
     case 'TRAITE_D':
@@ -199,16 +205,18 @@ const getStatusColor = (status) => {
       return 'info'; // bleu clair
     case 'RECU_BUREAU':
       return 'secondary'; // violet/gris
-    case 'BUREAU_SERVICE':               // ✅ Couleur différente
-      return 'purple'; // ou 'secondary' si tu veux rester dans MUI
+    case 'BUREAU_SERVICE':
+      return 'black'; // tu peux aussi changer pour une couleur custom
     case 'REJETE':
       return 'error'; // rouge
     case 'EN_ATTENTE':
-      return 'warning'; // orange
+      return 'default'; // gris (car warning déjà pris pour RECU)
     default:
       return 'default'; // gris
   }
 };
+
+
 
 
 
@@ -394,6 +402,7 @@ const getStatusColor = (status) => {
                  <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
                   <TableCell>Date Traitement</TableCell>
                     <TableCell>Statut</TableCell>
+                    <TableCell>View</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -451,8 +460,28 @@ const getStatusColor = (status) => {
                           label={getStatusLabel(row.status)}
                           size="small"
                           color={getStatusColor(row.status)}
+                          onClick={() => { }}
                         />
                       </TableCell>
+                       {/* Nouvelle colonne pour visualiser le PDF */}
+<TableCell>
+  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+
+    {row.cheminFichierPdf && (
+      <IconButton
+        component="a"
+        href={`http://localhost:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="error"
+        size="small"
+      >
+        <PictureAsPdfIcon />
+      </IconButton>
+    )}
+  </div>
+</TableCell>
                       <TableCell align="right">
                         <IconButton onClick={(e) => handleMenuClick(e, row)}>
                           <MoreVertIcon />

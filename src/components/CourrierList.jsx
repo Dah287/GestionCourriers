@@ -198,11 +198,13 @@ const handleTransferToService = async () => {
   };
 const getStatusLabel = (status) => {
   switch (status) {
+    case 'RECU':
+      return 'Courrier reçu'; // ✅ nouveau
     case 'RECU_SERVICE':
       return 'Envoyé au service';
     case 'RECU_BUREAU':
       return 'Envoyé au bureau';
-    case 'BUREAU_SERVICE':               // ✅ Nouveau statut
+    case 'BUREAU_SERVICE':
       return 'Réponse bureau';
     case 'TRAITE':
       return 'Courrier traité';
@@ -217,8 +219,11 @@ const getStatusLabel = (status) => {
   }
 };
 
+
 const getStatusColor = (status) => {
   switch (status) {
+    case 'RECU':
+      return 'warning'; // ✅ jaune/orange
     case 'TRAITE':
       return 'success'; // vert
     case 'TRAITE_D':
@@ -227,16 +232,18 @@ const getStatusColor = (status) => {
       return 'info'; // bleu clair
     case 'RECU_BUREAU':
       return 'secondary'; // violet/gris
-    case 'BUREAU_SERVICE':               // ✅ Couleur différente
-      return 'purple'; // ou 'secondary' si tu veux rester dans MUI
+    case 'BUREAU_SERVICE':
+      return 'black'; // tu peux aussi changer pour une couleur custom
     case 'REJETE':
       return 'error'; // rouge
     case 'EN_ATTENTE':
-      return 'warning'; // orange
+      return 'default'; // gris (car warning déjà pris pour RECU)
     default:
       return 'default'; // gris
   }
 };
+
+
 
 
 

@@ -17,7 +17,7 @@ const resetTimer = () => {
    // const login = localStorage.getItem('login');
            localStorage.clear();
       navigate('/'); 
-  }, 10 * 60 * 1000); // 10 minutes
+  }, 60 * 60 * 1000); // 10 minutes
 };
 
     const events = ['mousemove', 'keydown', 'click', 'scroll'];

@@ -48,6 +48,7 @@ import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';  // ton api custom
 import useAutoLogout from './Authentification/useAutoLogout';
 
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 const CourrierListService = () => {
     useAutoLogout(); // ✅ Doit être au tout début du composant
   const navigate = useNavigate();
@@ -236,38 +237,54 @@ console.log("Dupliquer et transférer le courrier",nouveauCourrier)
     }
   };
 
-const getStatusColor = (status) => {
+const getStatusLabel = (status) => {
   switch (status) {
-    case 'TRAITE':
-      return 'success'; // vert
+    case 'RECU':
+      return 'Courrier reçu'; // ✅ nouveau
     case 'RECU_SERVICE':
-      return 'info'; // bleu clair
+      return 'Envoyé au service';
     case 'RECU_BUREAU':
-      return 'secondary'; // violet/gris
-    case 'REJETE':
-      return 'error'; // rouge
-    case 'EN_ATTENTE':
-      return 'warning'; // orange
-    default:
-      return 'default'; // gris
-  }
-};
-  const getStatusLabel = (status) => {
-  switch (status) {
-    case 'RECU_SERVICE':
-      return 'Réception service en cours';
-    case 'RECU_BUREAU':
-      return 'Réception bureau en cours';
+      return 'Envoyé au bureau';
+    case 'BUREAU_SERVICE':
+      return 'Réponse bureau';
     case 'TRAITE':
-      return 'Traité';
+      return 'Courrier traité';
+    case 'TRAITE_D':
+      return 'Courrier traité définitivement';
     case 'REJETE':
       return 'Rejeté';
     case 'EN_ATTENTE':
-      return 'En attente';
+      return "En attente d'envoi";
     default:
       return status;
   }
 };
+
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'RECU':
+      return 'warning'; // ✅ jaune/orange
+    case 'TRAITE':
+      return 'success'; // vert
+    case 'TRAITE_D':
+      return 'primary'; // bleu foncé
+    case 'RECU_SERVICE':
+      return 'info'; // bleu clair
+    case 'RECU_BUREAU':
+      return 'secondary'; // violet/gris
+    case 'BUREAU_SERVICE':
+      return 'black'; // tu peux aussi changer pour une couleur custom
+    case 'REJETE':
+      return 'error'; // rouge
+    case 'EN_ATTENTE':
+      return 'default'; // gris (car warning déjà pris pour RECU)
+    default:
+      return 'default'; // gris
+  }
+};
+
+
 const bureauxParService = {
   "SERVICE DE LA PLANIFICATION": [
     "BUREAU DE SUIVI EVALUATION",
@@ -400,7 +417,7 @@ const bureauxDisponibles = selectedRow
         </Box>
 
         {/* Statistiques */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        {/* <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           <Paper sx={{ p: 2, flex: 1 }}>
             <Typography variant="subtitle2">Courriers en attente</Typography>
             <Typography variant="h4">
@@ -419,49 +436,113 @@ const bureauxDisponibles = selectedRow
               {courriers.filter(c => c.status === 'TRAITE').length}
             </Typography>
           </Paper>
-        </Box>
+        </Box> */}
 
         {/* Tableau */}
         <Paper sx={{ mb: 2 }}>
           <TableContainer>
             <Table>
-              <TableHead>
+             <TableHead>
                 <TableRow>
                   <TableCell>Référence</TableCell>
                   <TableCell>Type</TableCell>
                   <TableCell>Expéditeur</TableCell>
                   <TableCell>Objet</TableCell>
-                  <TableCell>Statut</TableCell>
-                  <TableCell>Date arrivée</TableCell>
+                  {/* <TableCell>Entité</TableCell> */}
+             
+                    <TableCell>Date arrivée</TableCell>
+            <TableCell>Service  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+
+                
+                
+                  <TableCell>Délais</TableCell>
                   <TableCell>Urgent</TableCell>
-                  <TableCell>Date Envoi</TableCell>
-                  <TableCell>Date Reception Service</TableCell>
-                  <TableCell>Date Reception Bureau</TableCell>
+                
+               
+                 
+                 <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+                  <TableCell>Date Traitement</TableCell>
+                    <TableCell>Statut</TableCell>
+                    <TableCell>View</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {courriers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.numeroOrdre}</TableCell>
-                    <TableCell>{row.typeCourrier}</TableCell>
-                    <TableCell>{row.entiteExpeditrice}</TableCell>
-                    <TableCell>{row.objet}</TableCell>
+                {courriers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>{row.numeroOrdre}</TableCell>
+                      <TableCell>{row.typeCourrier}</TableCell>
+                      <TableCell>{row.entiteExpeditrice}</TableCell>
+                      <TableCell>{row.objet}</TableCell>
+                      {/* <TableCell>{row.entiteTransmise}</TableCell> */}
+             
+                       <TableCell>{formatDate(row.dateArrivee)}</TableCell>
+<TableCell>
+  <div>
+    <strong>Service :</strong> {row.serviceDestinataire}<br />
+    <strong>Date envoi :</strong> {formatDate(row.dateReceptionService)}
+  </div>
+</TableCell>
+                      
+                            
+                      
+                   <TableCell>{row.delaisJours} J</TableCell>  
                     <TableCell>
-                      <Chip
-                        label={getStatusLabel(row.status)}
-                        size="small"
-                        color={getStatusColor(row.status)}
-                        onClick={() => { }} // Add this line
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(row.dateArrivee)}</TableCell>
-                    <TableCell>
-                      {row.urgent && <WarningIcon color="error" />}
-                    </TableCell>
-                    <TableCell>{formatDate(row.dateEnvoi)}</TableCell>
-                    <TableCell>{formatDate(row.dateReceptionService)}</TableCell>
-                    <TableCell>{formatDate(row.dateReceptionBureau)}</TableCell>
+  {row.delaisJours <= 2 ? (
+    <Chip
+      label="Très urgent"
+      size="small"
+      color="error"
+      icon={<WarningIcon />}
+    />
+  ) : row.delaisJours <= 4 ? (
+    <Chip
+      label="Urgent"
+      size="small"
+      color="warning"
+      icon={<WarningIcon />}
+    />
+  ) : null}
+</TableCell>
+
+                      
+                   
+                      <TableCell>
+  <div>
+    <strong>Bureau :</strong> {row.bureauRecepteur}<br />
+    <strong>Date envoi :</strong> {formatDate(row.dateReceptionBureau)}
+  </div>
+</TableCell>
+                       <TableCell>{formatDate(row.dateTraitement)}</TableCell>
+                       <TableCell>
+                        <Chip
+                          label={getStatusLabel(row.status)}
+                          size="small"
+                          color={getStatusColor(row.status)}
+                          onClick={() => { }}
+                        />
+                      </TableCell>
+                       {/* Nouvelle colonne pour visualiser le PDF */}
+<TableCell>
+  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+
+    {row.cheminFichierPdf && (
+      <IconButton
+        component="a"
+        href={`http://localhost:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="error"
+        size="small"
+      >
+        <PictureAsPdfIcon />
+      </IconButton>
+    )}
+  </div>
+</TableCell>
                     <TableCell align="right">
                       <IconButton
                         size="small"
@@ -501,7 +582,11 @@ const bureauxDisponibles = selectedRow
           </MenuItem>
           <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem> */}
           <Divider />
-          <MenuItem onClick={handleOpenBureauDialog}>Transférer au bureau</MenuItem>
+          <MenuItem onClick={handleOpenBureauDialog}   disabled={
+    !selectedRow || 
+    (selectedRow.status !== "RECU_BUREAU" && selectedRow.status !== "BUREAU_SERVICE")
+  }
+  >Transférer au bureau</MenuItem>
           <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>
           <Divider />
           {/* <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem> */}

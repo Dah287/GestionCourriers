@@ -25,6 +25,7 @@ import ProtectedRoute from './components/Authentification/ProtectedRoute';
 import MarcheList from './components/MarcheList';
 import MarcheDecomptes from './components/MarcheDecomptes';
 import UserList from './components/UserList';
+import AddCourrier from './components/AddCourrier';
 
 // import ProtectedRoute from './ProtectedRoute';
 // import { AuthProvider } from './AuthContext';
@@ -81,6 +82,7 @@ function App() {
                 <Route path="/decomptes/dashbord" element={<ProtectedRoute><DashboardDecomptes /></ProtectedRoute>} />
                  <Route path="/decomptes/edit/:id" element={<ProtectedRoute><AjoutDecompte /></ProtectedRoute>} />
                <Route path="/historique/dashbord" element={<ProtectedRoute><MarcheDecomptes /></ProtectedRoute>} />  
+                  <Route path="/T1" element={<ProtectedRoute><AddCourrier /></ProtectedRoute>} /> 
               <Route path="/user" element={<ProtectedRoute><UserList /></ProtectedRoute>} />  
               </Routes>
             </div>

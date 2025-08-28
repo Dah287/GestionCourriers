@@ -14,7 +14,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  ListItemText
+  ListItemText,
 } from "@mui/material";
 import {
   Mail as MailIcon,
@@ -22,19 +22,19 @@ import {
   Delete as DeleteIcon,
   Print as PrintIcon,
   Schedule as ScheduleIcon,
-  Warning as WarningIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import courrierApi from '../services/courrierApi';
+import axios from "axios";
 
 const MailReceptionFormTest = () => {
-
   const { courrierId } = useParams();
   const navigate = useNavigate();
 
+  // Valeurs par défaut
   const initialFormData = {
-    dateArrivee: new Date().toISOString().split('T')[0],
+    dateArrivee: new Date().toISOString().split("T")[0],
     typeCourrier: "Fax",
     numeroOrdre: "",
     entiteExpeditrice: "Direction",
@@ -43,11 +43,10 @@ const MailReceptionFormTest = () => {
     status: "EN_ATTENTE",
     objet: "",
     langue: "Français",
-    copies: "", // Changé de array à string
+    copies: "",
     urgent: false,
     delaisJours: "",
     instructions: {
-
       elementReponse: false,
       exploitationCompte: false,
       avecAccord: false,
@@ -55,85 +54,53 @@ const MailReceptionFormTest = () => {
       enquete: false,
       etude: false,
     },
-    instructionSupplementaire: "", // Maintenant un simple string
-entiteTransmise: "",
-servicesTransmis: [],
-
+    instructionSupplementaire: "",
+    entiteTransmise: "",
+    servicesTransmis: [],
+    serviceDestinataire: "",
+    bureauRecepteur: "",
   };
 
-const [selectedEntite, setSelectedEntite] = useState("");
-const [servicesDisponibles, setServicesDisponibles] = useState([]);
-
-  const entitesEtServices = {
-  "Direction": [
-    "SERVICE INFORMATIQUE",
-    "SERVICE DE LA PLANIFICATION",
-    "SERVICE DE LA COMPTABILITE ET FINANCES"
-  ],
-  "DPF": [
-    "SERVICE INFORMATIQUE",
-    "SERVICE DE LA PLANIFICATION",
-    "SERVICE DE LA COMPTABILITE ET FINANCES"
-  ],
-  "DRH": [
-    "SERVICE DE FORMATION CONTINUE ET GESTION DES CARRIÈRES",
-    "SERVICE DE GESTION DU PERSONNEL"
-  ],
-  // ... autres entités
-};
-const handleServicesChange = (event) => {
-  const {
-    target: { value },
-  } = event;
-  setFormData(prev => ({
-    ...prev,
-    servicesTransmis: typeof value === 'string' ? value.split(',') : value,
-  }));
-};
-
-const handleEntiteChange = (e) => {
-  const entite = e.target.value;
-  setSelectedEntite(entite);
-  setServicesDisponibles(entitesEtServices[entite] || []);
-  setFormData(prev => ({ 
-    ...prev, 
-    entiteTransmise: entite, 
-    servicesTransmis: []
-  }));
-};
-
   const [formData, setFormData] = useState(initialFormData);
+  const [selectedEntite, setSelectedEntite] = useState("");
+  const [servicesDisponibles, setServicesDisponibles] = useState([]);
+  const [fichierPdf, setFichierPdf] = useState(null);
+  const [previewPdf, setPreviewPdf] = useState(null);
 
-  // Options pour Entité Expéditrice
-  const entitesExpeditrices = ["Direction","DIAEA","DPFP","DF","Province","Réclamation" ,"DA", "DDA", "DRH", "DGR", "SMG", "SAICG"];
+  // Liste des entités et services
+  const entitesEtServices = {
+    Direction: [
+      "SERVICE INFORMATIQUE",
+      "SERVICE DE LA PLANIFICATION",
+      "SERVICE DE LA COMPTABILITE ET FINANCES",
+    ],
+    DPF: [
+      "SERVICE INFORMATIQUE",
+      "SERVICE DE LA PLANIFICATION",
+      "SERVICE DE LA COMPTABILITE ET FINANCES",
+    ],
+    DRH: [
+      "SERVICE DE FORMATION CONTINUE ET GESTION DES CARRIÈRES",
+      "SERVICE DE GESTION DU PERSONNEL",
+    ],
+  };
 
-  // Options pour Entités Transmises
-  const entitesTransmisesOptions = [
-        "SERVICE INFORMATIQUE",
-    "SERVICE DE LA PLANIFICATION",
-    "SERVICE DE LA COMPTABILITE ET FINANCES",
-
+  const entitesExpeditrices = [
+    "Direction",
+    "DIAEA",
+    "DPFP",
+    "DF",
+    "Province",
+    "Réclamation",
+    "DA",
+    "DDA",
+    "DRH",
+    "DGR",
+    "SMG",
+    "SAICG",
   ];
-  
 
-  useEffect(() => {
-    if (courrierId) {
-      const fetchCourrier = async () => {
-        try {
-          const response = await courrierApi.getCourrier(courrierId);
-          setFormData({
-            ...response.data,
-            // Convertir les arrays en strings si nécessaire
-            copies: Array.isArray(response.data.copies) ? response.data.copies.join(", ") : response.data.copies,
-          });
-        } catch (error) {
-          console.error("Error fetching courrier:", error);
-        }
-      };
-      fetchCourrier();
-    }
-  }, [courrierId]);
-
+  // Gestion des champs simples
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -142,6 +109,7 @@ const handleEntiteChange = (e) => {
     }));
   };
 
+  // Gestion instructions (checkboxes)
   const handleInstructionChange = (e) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({
@@ -153,31 +121,118 @@ const handleEntiteChange = (e) => {
     }));
   };
 
+  // Gestion entité et services
+  const handleEntiteChange = (e) => {
+    const entite = e.target.value;
+    setSelectedEntite(entite);
+    setServicesDisponibles(entitesEtServices[entite] || []);
+    setFormData((prev) => ({
+      ...prev,
+      entiteTransmise: entite,
+      servicesTransmis: [],
+    }));
+  };
+
+  const handleServicesChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      servicesTransmis: typeof value === "string" ? value.split(",") : value,
+    }));
+  };
+
+  // Gestion fichier PDF
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      setFichierPdf(file);
+      setPreviewPdf(URL.createObjectURL(file));
+    } else {
+      alert("Veuillez sélectionner uniquement un fichier PDF.");
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFichierPdf(null);
+    setPreviewPdf(null);
+  };
+
+  // Chargement d’un courrier si modification
+  useEffect(() => {
+    if (courrierId) {
+      const fetchCourrier = async () => {
+        try {
+          const res = await axios.get(
+            `http://192.168.1.68:8080/api/courriers/${courrierId}`
+          );
+          const data = res.data;
+
+          setFormData({
+            ...data,
+            copies: Array.isArray(data.copies)
+              ? data.copies.join(", ")
+              : data.copies || "",
+          });
+
+          if (data.entiteTransmise) {
+            setSelectedEntite(data.entiteTransmise);
+            setServicesDisponibles(entitesEtServices[data.entiteTransmise] || []);
+          }
+
+          if (data.cheminFichierPdf) {
+            setPreviewPdf(
+              `http://192.168.1.68:8080${
+                data.cheminFichierPdf.startsWith("/") ? "" : "/"
+              }${data.cheminFichierPdf}`
+            );
+          }
+        } catch (err) {
+          console.error("Erreur lors du chargement :", err);
+        }
+      };
+      fetchCourrier();
+    }
+  }, [courrierId]);
+
+  // Soumission formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const dataToSend = {
         ...formData,
-        // Convertir la string copies en array si nécessaire
-    
+        copies: formData.copies || "",
       };
 
-      if (courrierId) {
-        await courrierApi.updateCourrier(courrierId, dataToSend);
-        alert("Courrier mis à jour avec succès !");
-      } else {
-        console.log("data :", dataToSend)
-        await courrierApi.createCourrier(dataToSend);
-         console.log("New courrier created:", dataToSend);
-        alert("Courrier ajouté avec succès !");
+      const formDataObj = new FormData();
+      formDataObj.append(
+        "courrier",
+        new Blob([JSON.stringify(dataToSend)], { type: "application/json" })
+      );
+      if (fichierPdf) {
+        formDataObj.append("fichierPdf", fichierPdf);
       }
-      navigate('/dashbord');
-    } catch (error) {
-      console.error("Error saving courrier:", error);
-      alert("Une erreur est survenue lors de l'enregistrement du courrier.");
+
+      if (courrierId) {
+        await axios.put(
+          `http://192.168.1.68:8080/api/courriers/${courrierId}`,
+          formDataObj,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        alert("Courrier mis à jour ✅");
+      } else {
+        await axios.post("http://192.168.1.68:8080/api/courriers", formDataObj, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        alert("Courrier ajouté ✅");
+      }
+      navigate("/dashbord");
+    } catch (err) {
+      console.error("Erreur :", err);
+      alert("Erreur lors de l'enregistrement ❌");
     }
   };
 
+  // Suppression
   const handleDelete = async () => {
     if (!courrierId) return;
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce courrier ?")) {
@@ -186,18 +241,20 @@ const handleEntiteChange = (e) => {
         alert("Courrier supprimé avec succès !");
         navigate('/dashbord');
       } catch (error) {
-        console.error("Error deleting courrier:", error);
-        alert("Une erreur est survenue lors de la suppression du courrier.");
+        console.error("Erreur lors de la suppression :", error);
+        alert("Une erreur est survenue lors de la suppression.");
       }
     }
   };
 
+  // Retour
   const handleBack = () => {
     navigate(-1);
   };
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, margin: "auto" }}>
+      {/* En-tête */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <MailIcon sx={{ mr: 2, color: "primary.main", fontSize: 32 }} />
         <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
@@ -207,29 +264,25 @@ const handleEntiteChange = (e) => {
       <Divider sx={{ my: 2 }} />
 
       <Box component="form" onSubmit={handleSubmit}>
-        {/* Section Arrivée */}
+        {/* Section : Date d'arrivée */}
         <Box sx={{ bgcolor: "primary.light", p: 2, borderRadius: 1, mb: 3 }}>
-<TextField
-  label="📅 Arrivé le"
-  type="date"
-  value={formData.dateArrivee || ""}
-  onChange={(e) =>
-    setFormData({ ...formData, dateArrivee: e.target.value })
-  }
-  InputLabelProps={{
-    shrink: true,
-  }}
-  sx={{
-    mb: 1,
-    input: { color: "white" }, // Texte blanc
-    label: { color: "white" }, // Label blanc
-  }}
-  required
-/>
+          <TextField
+            label="📅 Arrivé le"
+            type="date"
+            value={formData.dateArrivee || ""}
+            onChange={(e) => setFormData({ ...formData, dateArrivee: e.target.value })}
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              mb: 1,
+              input: { color: "white" },
+              label: { color: "white" },
+            }}
+            required
+          />
         </Box>
 
+        {/* Champs principaux */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {/* Première ligne - 3 champs */}
           <Grid item xs={12} sm={4}>
             <TextField
               select
@@ -238,9 +291,7 @@ const handleEntiteChange = (e) => {
               name="typeCourrier"
               value={formData.typeCourrier}
               onChange={handleChange}
-              SelectProps={{
-                native: true,
-              }}
+              SelectProps={{ native: true }}
             >
               <option value="Lettre">Lettre</option>
               <option value="Fax">Fax</option>
@@ -277,8 +328,7 @@ const handleEntiteChange = (e) => {
             </FormControl>
           </Grid>
 
-          {/* Deuxième ligne - Date Expéditeur et Référence */}
-          <Grid item xs={12} sm={6}sx={{width: "31%",}}>
+          <Grid item xs={12} sm={6 } sx={{width: "31%",}}>
             <TextField
               fullWidth
               label="Date Expédition"
@@ -297,12 +347,11 @@ const handleEntiteChange = (e) => {
               name="reference"
               value={formData.reference}
               onChange={handleChange}
-              sx={{ "& .MuiInputBase-root": { height: "56px" } }}
               required
+              sx={{ "& .MuiInputBase-root": { height: "56px" } }}
             />
           </Grid>
 
-          {/* Troisième ligne - Objet et Langue */}
           <Grid item xs={12} sm={8}sx={{width: "65%",}}>
             <TextField
               fullWidth
@@ -322,9 +371,7 @@ const handleEntiteChange = (e) => {
               name="langue"
               value={formData.langue}
               onChange={handleChange}
-              SelectProps={{
-                native: true,
-              }}
+              SelectProps={{ native: true }}
               sx={{ "& .MuiInputBase-root": { height: "56px" } }}
             >
               <option value="Français">Français</option>
@@ -343,107 +390,98 @@ const handleEntiteChange = (e) => {
           </Typography>
         </Box>
 
-        {/* Nouveau champ Entités Transmises */}
-<Grid container spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
-  {/* Sélection de l'entité - prend 50% */}
-  <Grid item xs={12} sm={6}sx={{width: "40%",}}>
-    <FormControl fullWidth>
-      <InputLabel>Entité</InputLabel>
-      <Select
-        name="entite"
-        value={selectedEntite}
-        onChange={handleEntiteChange}
-        label="Entité"
-      >
-        {Object.keys(entitesEtServices).map((entite) => (
-          <MenuItem key={entite} value={entite}>
-            {entite}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </Grid>
-
-  {/* Sélection des services - prend 50% */}
-  <Grid item xs={12} sm={6}sx={{width: "40%",}}>
-    {selectedEntite ? (
-      <FormControl fullWidth>
-        <InputLabel>Services</InputLabel>
-        <Select
-          multiple
-          name="entitesTransmises"
-          value={formData.servicesTransmis || []}
-
-          onChange={handleServicesChange}
-          label="Services"
-          renderValue={(selected) => selected.join(', ')}
-          MenuProps={{
-            PaperProps: {
-              style: {
-                maxHeight: 300,
-              },
-            },
-          }}
-        >
-          {servicesDisponibles.map((service) => (
-            <MenuItem key={service} value={service}>
-              <Checkbox checked={(formData.servicesTransmis || []).includes(service)} />
-
-              <ListItemText primary={service} />
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    ) : (
-      <TextField
-        fullWidth
-        label="Services"
-        disabled
-        value="Sélectionnez d'abord une entité"
-      />
-    )}
-  </Grid>
-</Grid>
-
-          {/* Champ Copies modifié */}
-          <Grid item xs={12} sm={6}sx={{width: "45%",}}>
-            <TextField
-              fullWidth
-              label="Copie"
-              name="copies"
-              value={formData.copies}
-              onChange={handleChange}
-              sx={{ "& .MuiInputBase-root": { height: "56px" } }}
-              helperText="Séparez les copies par des virgules"
-            />
+        {/* Sélection Entité + Services */}
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={6}sx={{width: "40%",}}>
+            <FormControl fullWidth>
+              <InputLabel>Entité</InputLabel>
+              <Select
+                name="entite"
+                value={selectedEntite}
+                onChange={handleEntiteChange}
+                label="Entité"
+              >
+                {Object.keys(entitesEtServices).map((entite) => (
+                  <MenuItem key={entite} value={entite}>
+                    {entite}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6}>
 
-
+          <Grid item xs={12} sm={6}sx={{width: "40%",}}>
+            {selectedEntite ? (
+              <FormControl fullWidth>
+                <InputLabel>Services</InputLabel>
+                <Select
+                  multiple
+                  name="servicesTransmis"
+                  value={formData.servicesTransmis || []}
+                  onChange={handleServicesChange}
+                  label="Services"
+                  renderValue={(selected) => selected.join(', ')}
+                  MenuProps={{
+                    PaperProps: { style: { maxHeight: 300 } },
+                  }}
+                >
+                  {servicesDisponibles.map((service) => (
+                    <MenuItem key={service} value={service}>
+                      <Checkbox checked={formData.servicesTransmis.includes(service)} />
+                      <ListItemText primary={service} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
               <TextField
                 fullWidth
-                label="Délais (jours)"
-                name="delaisJours"
-                type="number"
-                value={formData.delaisJours}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <ScheduleIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mt: 1, "& .MuiInputBase-root": { height: "56px" } }}
+                label="Services"
+                disabled
+                value="Sélectionnez d'abord une entité"
               />
+            )}
+          </Grid>
+        </Grid>
 
+        {/* Copies */}
+        <Grid item xs={12} sm={6}sx={{width: "45%",}}>
+          <TextField
+            fullWidth
+            label="Copie"
+            name="copies"
+            value={formData.copies}
+            onChange={handleChange}
+            helperText="Séparez les copies par des virgules"
+            sx={{ mb: 2, "& .MuiInputBase-root": { height: "56px" } }}
+          />
+        </Grid>
+
+        {/* Délais */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Délais (jours)"
+              name="delaisJours"
+              type="number"
+              value={formData.delaisJours}
+              onChange={handleChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <ScheduleIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ "& .MuiInputBase-root": { height: "56px" } }}
+            />
           </Grid>
         </Grid>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Section Instructions */}
+        {/* Instructions */}
         <Box sx={{ bgcolor: "info.light", p: 2, borderRadius: 1, mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
             📋 Instructions
@@ -469,16 +507,14 @@ const handleEntiteChange = (e) => {
                   p: 1,
                   m: 0,
                   width: "100%",
-                  "&:hover": {
-                    bgcolor: "action.hover",
-                  },
+                  "&:hover": { bgcolor: "action.hover" },
                 }}
               />
             </Grid>
           ))}
         </Grid>
 
-        {/* Instruction Supplémentaire modifiée */}
+        {/* Instruction supplémentaire */}
         <TextField
           fullWidth
           label="Instruction Supplémentaire"
@@ -490,18 +526,93 @@ const handleEntiteChange = (e) => {
           sx={{ mb: 3 }}
         />
 
-        {/* Boutons d'action */}
+        {/* 🔽 CHAMP UPLOAD PDF 🔽 */}
+        <Box sx={{ mt: 3, p: 2, border: "1px dashed #1976d2", borderRadius: 2 }}>
+          <Typography variant="body1" color="textSecondary" sx={{ mb: 1 }}>
+            📎 Joindre une pièce jointe (PDF)
+          </Typography>
+          <input
+            accept="application/pdf"
+            style={{ display: "none" }}
+            id="upload-pdf"
+            type="file"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="upload-pdf">
+            <Button variant="contained" component="span" startIcon={<MailIcon />}>
+              Choisir un PDF
+            </Button>
+          </label>
+
+          {(fichierPdf || previewPdf) && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="success.main">
+                ✅ {fichierPdf ? fichierPdf.name : "Document joint"}
+              </Typography>
+              <Button
+                size="small"
+                color="secondary"
+                onClick={handleRemoveFile}
+                sx={{ mt: 1 }}
+              >
+                Supprimer
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {/* Aperçu ou lien PDF */}
+        {previewPdf && !fichierPdf && (
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Button
+              variant="outlined"
+              href={previewPdf}
+              target="_blank"
+              sx={{ mb: 1 }}
+            >
+              🔍 Voir le PDF existant
+            </Button>
+          </Box>
+        )}
+
+        {previewPdf && fichierPdf && (
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <iframe
+              src={previewPdf}
+              style={{ width: "100%", height: "400px", border: "1px solid #ddd" }}
+              title="Aperçu PDF"
+            />
+          </Box>
+        )}
+        {/* 🔼 FIN UPLOAD PDF 🔼 */}
+
+        {/* Boutons */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
           {courrierId && (
-            <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleDelete} sx={{ borderRadius: 2 }}>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleDelete}
+              sx={{ borderRadius: 2 }}
+            >
               Supprimer
             </Button>
           )}
           <Box sx={{ marginLeft: courrierId ? 'auto' : '0' }}>
-            <Button variant="outlined" onClick={handleBack} startIcon={<ArrowBackIcon />} sx={{ mr: 2, borderRadius: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={handleBack}
+              startIcon={<ArrowBackIcon />}
+              sx={{ mr: 2, borderRadius: 2 }}
+            >
               Retour
             </Button>
-            <Button variant="outlined" startIcon={<PrintIcon />} sx={{ mr: 2, borderRadius: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<PrintIcon />}
+              sx={{ mr: 2, borderRadius: 2 }}
+            >
               Imprimer
             </Button>
             <Button

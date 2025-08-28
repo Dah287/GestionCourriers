@@ -60,6 +60,9 @@ const updateDateReceptionRATP= (id) => {
 const updateDateReceptioTraite = (id) => {
   return axios.put(`${API_URL}/update-status-traite/${id}`);
 };
+const updateDateReceptioTraite4 = (id) => {
+  return axios.put(`${API_URL}/update-status-traite4/${id}`);
+};
 const updateDateReceptioTraite3 = (id) => {
   return axios.put(`${API_URL}/update-status-traite3/${id}`);
 };
@@ -227,6 +230,7 @@ const courrierApi = {
   getAllCourriers,
   updateDateReceptionService,
   updateDateReceptioTraite,
+    updateDateReceptioTraite4,
    updateDateReceptioTraite3,
    updateDateReceptioTraite1,
   getCourriersParEntite,
