@@ -17,5 +17,6 @@ public interface CourrierRepository extends JpaRepository<Courrier , Long> {
     List<Courrier> findByStatusAndServiceDestinataire(Status status, String entitesTransmises);
     List<Courrier> findByStatusAndBureauRecepteur(Status status, String bureauRecepteur);
     List<Courrier> findByStatusInAndServiceDestinataire(List<Status> statuses, String entite);
+    List<Courrier> findByStatusInAndBureauRecepteur(List<Status> statuses, String entite);
 
 }

@@ -81,7 +81,9 @@ public class Courrier {
     @Column(name = "date_traitement")
     private LocalDate dateTraitement;
 
-
+//
+@Column(name = "chemin_fichier_pdf")
+private String cheminFichierPdf;
 
     // Constructeurs
     public Courrier() {
@@ -271,5 +273,13 @@ public class Courrier {
 
     public void setDateReceptionBureau(LocalDate dateReceptionBureau) {
         this.dateReceptionBureau = dateReceptionBureau;
+    }
+
+    public String getCheminFichierPdf() {
+        return cheminFichierPdf;
+    }
+
+    public void setCheminFichierPdf(String cheminFichierPdf) {
+        this.cheminFichierPdf = cheminFichierPdf;
     }
 }

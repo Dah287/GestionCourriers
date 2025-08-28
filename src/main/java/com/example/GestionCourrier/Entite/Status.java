@@ -8,5 +8,6 @@ public enum Status {
     TRAITE,
     ARCHIVE,
     TRAITE_D,
-    BUREAU_SERVICE
+    BUREAU_SERVICE,
+    RECU
 }

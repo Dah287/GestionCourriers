@@ -19,8 +19,15 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,14 +40,35 @@ public class CourrierService {
 
     private final CourrierRepository  courrierRepository;
 
-    @Autowired
+
+
     public CourrierService(CourrierRepository courrierRepository) {
         this.courrierRepository = courrierRepository;
+
     }
 
-    public Courrier createCourrier(Courrier  courrier) {
-        return courrierRepository.save(courrier);
-    }
+//    public Courrier createCourrier(Courrier courrier, MultipartFile fichierPdf) throws IOException {
+//        // 1. Sauvegarder le fichier PDF si présent
+//        if (fichierPdf != null && !fichierPdf.isEmpty()) {
+//            if (!"application/pdf".equals(fichierPdf.getContentType())) {
+//                throw new IllegalArgumentException("Seul le format PDF est autorisé.");
+//            }
+//
+//            // Générer un nom unique
+//            String nomFichier = System.currentTimeMillis() + "_" +
+//                    fichierPdf.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
+//            Path chemin = Paths.get(uploadDir, nomFichier);
+//
+//            // Sauvegarder physiquement le fichier
+//            Files.copy(fichierPdf.getInputStream(), chemin, StandardCopyOption.REPLACE_EXISTING);
+//
+//            // Mettre à jour le champ cheminFichierPdf dans l'entité
+//            courrier.setCheminFichierPdf(chemin.toString());
+//        }
+//
+//        // 2. Sauvegarder le courrier en base
+//        return courrierRepository.save(courrier);
+//    }
 
     public Courrier updateCourrier(Long id, Courrier courrierDetails) {
         Courrier courrier = courrierRepository.findById(id)
@@ -79,13 +107,13 @@ public class CourrierService {
    //  Méthode pour status = RECU_SERVICE et entitesTransmises = valeur donnée
     public List<Courrier> getCourriersParStatusEtEntiteTransmise(String entite) {
         return courrierRepository.findByStatusInAndServiceDestinataire(
-                List.of(Status.RECU_SERVICE, Status.RECU_BUREAU,Status.BUREAU_SERVICE),
+                List.of(Status.RECU_SERVICE, Status.RECU_BUREAU,Status.BUREAU_SERVICE,Status.TRAITE,Status.RECU),
                 entite
         );
     }
     // Méthode pour status = RECU_SERVICE et entitesTransmises = valeur donnée
     public List<Courrier> getCourriersParStatusEtEntiteTransmise2(String entite) {
-        return courrierRepository.findByStatusAndBureauRecepteur(Status .RECU_BUREAU, entite);
+        return courrierRepository.findByStatusInAndBureauRecepteur(List.of(Status .RECU_BUREAU,Status.RECU), entite);
     }
     public List<Courrier> getAllCourriers() {
         return courrierRepository.findAll();
@@ -139,7 +167,7 @@ public class CourrierService {
                 copie.setEntiteTransmise(original.getEntiteTransmise());
                 copie.setServicesTransmis(original.getServicesTransmis());
                 copie.setServiceDestinataire(original.getServiceDestinataire());
-
+                copie.setCheminFichierPdf(original.getCheminFichierPdf());
                 // Champs spécifiques au transfert
                 copie.setBureauRecepteur(bureau);
                 copie.setDateReceptionBureau(LocalDate.now());

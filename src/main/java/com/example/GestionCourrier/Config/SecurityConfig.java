@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/courriers/**").permitAll()//.hasRole("ADMIN")  // SEULEMENT ADMIN
                         .requestMatchers("/api/decomptes/**").permitAll()//.hasAnyRole("ADMIN", "USER") // ADMIN & USER
                         .requestMatchers("/api/marches/**").permitAll()//.hasAnyRole("ADMIN", "USER")   // ADMIN & USER
+                        .requestMatchers("/uploads/courriers/**").permitAll()
                         .anyRequest().authenticated() // le reste authentifié
                 )
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
