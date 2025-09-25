@@ -217,7 +217,39 @@ const getStatusColor = (status) => {
 };
 
 
+const isOverdue = (dateArrivee, delaisJours) => {
+  if (!dateArrivee || !delaisJours) return false;
 
+  // Si c'est déjà un objet Date, on l'utilise
+  let arrivee;
+  if (dateArrivee instanceof Date) {
+    arrivee = dateArrivee;
+  } else {
+    // Sinon, on essaie de parser la chaîne
+    // Format attendu : "YYYY-MM-DD" ou "DD/MM/YYYY"
+    if (typeof dateArrivee === 'string') {
+      if (dateArrivee.includes('/')) {
+        // Format "DD/MM/YYYY"
+        const [day, month, year] = dateArrivee.split('/');
+        arrivee = new Date(`${year}-${month}-${day}`);
+      } else {
+        // Format "YYYY-MM-DD" (ISO)
+        arrivee = new Date(dateArrivee);
+      }
+    } else {
+      return false; // Type inattendu
+    }
+  }
+
+  // Vérifier si la date est valide
+  if (isNaN(arrivee.getTime())) return false;
+
+  const now = new Date();
+  const deadline = new Date(arrivee);
+  deadline.setDate(arrivee.getDate() + parseInt(delaisJours, 10));
+
+  return now > deadline;
+};
 
 
 
@@ -239,9 +271,17 @@ const getStatusColor = (status) => {
     setSelectedStatusFilter((prev) => (prev === status ? null : status));
   };
 
-  const filteredCourriers = selectedStatusFilter
-    ? courriers.filter((c) => c.status === selectedStatusFilter)
-    : courriers;
+const filteredCourriers = selectedStatusFilter
+  ? courriers.filter((c) => {
+      if (selectedStatusFilter === 'EN_COURS') {
+        return c.status !== 'TRAITE_D';
+      }
+      if (selectedStatusFilter === 'OVERDUE') {
+        return isOverdue(c.dateArrivee, c.delaisJours); // ✅ Filtre les dépassés
+      }
+      return c.status === selectedStatusFilter;
+    })
+  : courriers;
 
   if (loading) return <Typography>Chargement en cours...</Typography>;
   if (error) return <Typography color="error">Erreur: {error}</Typography>;
@@ -325,37 +365,41 @@ const getStatusColor = (status) => {
 </Paper>
 
       {/* Statistiques */}
-      <Box sx={{ p: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Courrier envoyé au service', status: 'RECU_SERVICE' },
-          { label: 'Courrier Traité', status: 'TRAITE' },
-          { label: 'Courrier traité définitivement', status: 'TRAITE_D' },         
-          { label: 'Courrier dépassant la deadline', status: 'REJETE' },
+<Box sx={{ p: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+  {[
+    { label: 'Courrier envoyé au service', status: 'RECU_SERVICE' },
+    { label: 'Courrier Traité', status: 'TRAITE' },
+    { label: 'Courrier traité définitivement', status: 'TRAITE_D' },
+    { label: 'Courrier dépassant la deadline', status: 'OVERDUE' }, // ✅ NOUVEAU — affiche les courriers en retard
+    { label: 'Dossier en cours', status: 'EN_COURS' }
+  ].map(({ label, status }) => (
+    <Paper
+      key={label}
+      sx={{
+        p: 2,
+        flex: 1,
+        minWidth: 200,
+        cursor: 'pointer',
+        bgcolor: selectedStatusFilter === status ? 'primary.light' : 'white',
+        border: status === 'OVERDUE' ? '2px solid #d32f2f' : 'none', // 🔴 Bordure rouge si c’est la carte "Dépassés"
+        boxShadow: status === 'OVERDUE' ? 4 : 2,
+      }}
+      onClick={() => handleStatusCardClick(status)}
+    >
+      <Typography variant="subtitle2" sx={{ fontSize: '1.1rem', fontWeight: status === 'OVERDUE' ? 'bold' : 'normal' }}>
+        {label}
+      </Typography>
+      <Typography variant="h4" sx={{ color: status === 'OVERDUE' ? '#d32f2f' : 'inherit' }}>
+        {status === 'EN_COURS'
+          ? courriers.filter(c => c.status !== 'TRAITE_D').length
+          : status === 'OVERDUE'
+          ? courriers.filter(c => isOverdue(c.dateArrivee, c.delaisJours)).length // ✅ Filtre par overdue
+          : courriers.filter(c => c.status === status).length}
+      </Typography>
+    </Paper>
+  ))}
+</Box>
 
-          { label: 'Dossier en cours', status: null }
-        ].map(({ label, status }) => (
-          <Paper
-            key={label}
-            sx={{
-              p: 2,
-              flex: 1,
-              minWidth: 200,
-              cursor: 'pointer',
-              bgcolor: selectedStatusFilter === status ? 'primary.light' : 'white'
-            }}
-            onClick={() => handleStatusCardClick(status)}
-          >
-            <Typography variant="subtitle2"
-              sx={{ fontSize: '1.1rem' }}
-            >{label}</Typography>
-            <Typography variant="h4">
-              {status
-                ? courriers.filter(c => c.status === status).length
-                : courriers.length}
-            </Typography>
-          </Paper>
-        ))}
-      </Box>
 
       {/* Table */}
       <Box sx={{ p: 3 }}>
@@ -383,14 +427,17 @@ const getStatusColor = (status) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Référence</TableCell>
+                  
+             
+                  <TableCell>N° Ordre</TableCell>
+                       <TableCell>Référence</TableCell>
                   <TableCell>Type</TableCell>
                   <TableCell>Expéditeur</TableCell>
                   <TableCell>Objet</TableCell>
                   {/* <TableCell>Entité</TableCell> */}
              
                     <TableCell>Date arrivée</TableCell>
-            <TableCell>Service  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+            <TableCell>Service  <strong>&</strong> Date Reception</TableCell> {/* En-tête */}
 
                 
                 
@@ -401,8 +448,9 @@ const getStatusColor = (status) => {
                  
                  <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
                   <TableCell>Date Traitement</TableCell>
+                  <TableCell>Date Traitement Déf</TableCell>
                     <TableCell>Statut</TableCell>
-                    <TableCell>View</TableCell>
+             <TableCell>Courriers <strong>&</strong> Reponse </TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -412,6 +460,7 @@ const getStatusColor = (status) => {
                   .map((row) => (
                     <TableRow key={row.id}>
                       <TableCell>{row.numeroOrdre}</TableCell>
+                       <TableCell>{row.reference}</TableCell>
                       <TableCell>{row.typeCourrier}</TableCell>
                       <TableCell>{row.entiteExpeditrice}</TableCell>
                       <TableCell>{row.objet}</TableCell>
@@ -421,13 +470,20 @@ const getStatusColor = (status) => {
 <TableCell>
   <div>
     <strong>Service :</strong> {row.serviceDestinataire}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionService)}
+    <strong>Date Reception :</strong> {formatDate(row.dateEnvoi)}
   </div>
 </TableCell>
                       
                             
                       
-                   <TableCell>{row.delaisJours} J</TableCell>  
+                   <TableCell sx={{ width: '80px' }}>
+  {row.delaisJours} J
+  {isOverdue(row.dateArrivee, row.delaisJours) && (
+    <Tooltip title="Délai dépassé !">
+      <WarningIcon color="error" fontSize="small" sx={{ ml: 1 }} />
+    </Tooltip>
+  )}
+</TableCell>
                     <TableCell>
   {row.delaisJours <= 2 ? (
     <Chip
@@ -435,6 +491,7 @@ const getStatusColor = (status) => {
       size="small"
       color="error"
       icon={<WarningIcon />}
+      onClick={() => { }}
     />
   ) : row.delaisJours <= 4 ? (
     <Chip
@@ -442,6 +499,7 @@ const getStatusColor = (status) => {
       size="small"
       color="warning"
       icon={<WarningIcon />}
+      onClick={() => { }}
     />
   ) : null}
 </TableCell>
@@ -450,11 +508,15 @@ const getStatusColor = (status) => {
                    
                       <TableCell>
   <div>
-    <strong>Bureau :</strong> {row.bureauRecepteur}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionBureau)}
+    <strong>Bureau :</strong> {row.bureauRecepteur ? row.bureauRecepteur : "--------------------------"}<br />
+    <strong>Date Reception :</strong> {formatDate(row.dateReceptionService)}
   </div>
 </TableCell>
-                       <TableCell>{formatDate(row.dateTraitement)}</TableCell>
+                       <TableCell>{formatDate(row.dateTraitement) ? formatDate(row.dateTraitement) :"------"}</TableCell>
+                        <TableCell>{formatDate(row.dateTraitementDef)?formatDate(row.dateTraitementDef) :"------"}</TableCell>
+
+
+
                        <TableCell>
                         <Chip
                           label={getStatusLabel(row.status)}
@@ -464,17 +526,37 @@ const getStatusColor = (status) => {
                         />
                       </TableCell>
                        {/* Nouvelle colonne pour visualiser le PDF */}
-<TableCell>
-  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-
-
+<TableCell align="center">
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center", // centre horizontalement
+      alignItems: "center",     // centre verticalement
+      gap: "8px"
+    }}
+  >
+    {/* Courrier original */}
     {row.cheminFichierPdf && (
       <IconButton
         component="a"
-        href={`http://localhost:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
         target="_blank"
         rel="noopener noreferrer"
         color="error"
+        size="small"
+      >
+        <PictureAsPdfIcon />
+      </IconButton>
+    )}
+
+    {/* Réponse */}
+    {row.cheminFichierReponsePdf && (
+      <IconButton
+        component="a"
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierReponsePdf.split("\\").pop()}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="primary"
         size="small"
       >
         <PictureAsPdfIcon />
@@ -508,7 +590,12 @@ const getStatusColor = (status) => {
         <MenuItem onClick={() => { handleViewDetails(selectedRow.id); handleMenuClose(); }}>Voir les détails</MenuItem>
         <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
         <Divider />
-        <MenuItem onClick={handleTransferToService}>Transférer au service</MenuItem>
+        <MenuItem onClick={handleTransferToService}
+          disabled={
+    !selectedRow || 
+    (selectedRow.status !== "EN_ATTENTE" )
+  }
+        >Transférer au service</MenuItem>
         <MenuItem onClick={handleMarkAsTreated1}>Marquer comme traité Définitivement</MenuItem>
         <Divider />
                   <MenuItem

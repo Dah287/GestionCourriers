@@ -66,6 +66,13 @@ const updateDateReceptioTraite4 = (id) => {
 const updateDateReceptioTraite3 = (id) => {
   return axios.put(`${API_URL}/update-status-traite3/${id}`);
 };
+//
+const updateDateReceptioTraite33 = (id, formData) => {
+  return axios.put(`${API_URL}/update-status-traite33/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 const updateDateReceptioTraite1 = (id) => {
   return axios.put(`${API_URL}/update-status-traite-d/${id}`);
 };
@@ -231,7 +238,8 @@ const courrierApi = {
   updateDateReceptionService,
   updateDateReceptioTraite,
     updateDateReceptioTraite4,
-   updateDateReceptioTraite3,
+   updateDateReceptioTraite33,
+     updateDateReceptioTraite3,
    updateDateReceptioTraite1,
   getCourriersParEntite,
   updateStatusBureau,

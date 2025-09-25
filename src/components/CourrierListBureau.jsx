@@ -47,7 +47,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';  // ton api custom
 import useAutoLogout from './Authentification/useAutoLogout';
-
+import { Upload as UploadIcon } from "@mui/icons-material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 const CourrierListBureau = () => {
     useAutoLogout(); // ✅ Doit être au tout début du composant
@@ -64,7 +64,9 @@ const CourrierListBureau = () => {
   // Pour Dialog bureau
   const [openBureauDialog, setOpenBureauDialog] = useState(false);
   const [selectedBureau, setSelectedBureau] = useState('');
-
+//
+const [openDialog, setOpenDialog] = useState(false);
+const [selectedFile, setSelectedFile] = useState(null);
   const open = Boolean(anchorEl);
 
 
@@ -302,6 +304,34 @@ const getStatusColor = (status) => {
     }
   };
 
+  //
+
+  const handleOpenDialog = () => setOpenDialog(true);
+const handleCloseDialog = () => {
+  setOpenDialog(false);
+  setSelectedFile(null);
+};
+
+const handleFileChange = (e) => {
+  setSelectedFile(e.target.files[0]);
+};
+
+const handleSubmitResponse = async () => {
+  if (!selectedRow || !selectedFile) return;
+
+  const formData = new FormData();
+  formData.append("fichierReponsePdf", selectedFile);
+
+  try {
+    await courrierApi.updateDateReceptioTraite33(selectedRow.id, formData);
+    alert("Réponse transférée avec succès !");
+    handleCloseDialog();
+    await fetchCourriers();
+  } catch (err) {
+    alert("Erreur lors du transfert de la réponse.");
+  }
+};
+
 
 
 
@@ -450,7 +480,7 @@ const getStatusColor = (status) => {
                   {/* <TableCell>Entité</TableCell> */}
              
                     <TableCell>Date arrivée</TableCell>
-            <TableCell>Service  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+                       <TableCell>Service  <strong>&</strong> Date Reception</TableCell> {/* En-tête */}
 
                 
                 
@@ -459,10 +489,11 @@ const getStatusColor = (status) => {
                 
                
                  
-                 <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+                 <TableCell>Bureau  <strong>&</strong> Date Reception</TableCell> {/* En-tête */}
                   <TableCell>Date Traitement</TableCell>
                     <TableCell>Statut</TableCell>
-                    <TableCell>View</TableCell>
+                                    <TableCell>Courriers <strong>&</strong> Reponse </TableCell>
+                                
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -481,7 +512,7 @@ const getStatusColor = (status) => {
 <TableCell>
   <div>
     <strong>Service :</strong> {row.serviceDestinataire}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionService)}
+  <strong>Date Reception :</strong> {formatDate(row.dateEnvoi)}
   </div>
 </TableCell>
                       
@@ -511,7 +542,7 @@ const getStatusColor = (status) => {
                       <TableCell>
   <div>
     <strong>Bureau :</strong> {row.bureauRecepteur}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionBureau)}
+    <strong>Date Reception :</strong> {formatDate(row.dateReceptionService)}
   </div>
 </TableCell>
                        <TableCell>{formatDate(row.dateTraitement)}</TableCell>
@@ -524,14 +555,20 @@ const getStatusColor = (status) => {
                         />
                       </TableCell>
                        {/* Nouvelle colonne pour visualiser le PDF */}
-<TableCell>
-  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-
-
+<TableCell align="center">
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center", // centre horizontalement
+      alignItems: "center",     // centre verticalement
+      gap: "8px"
+    }}
+  >
+    {/* Courrier original */}
     {row.cheminFichierPdf && (
       <IconButton
         component="a"
-        href={`http://localhost:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
         target="_blank"
         rel="noopener noreferrer"
         color="error"
@@ -540,8 +577,23 @@ const getStatusColor = (status) => {
         <PictureAsPdfIcon />
       </IconButton>
     )}
+
+    {/* Réponse */}
+    {row.cheminFichierReponsePdf && (
+      <IconButton
+        component="a"
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierReponsePdf.split("\\").pop()}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="primary"
+        size="small"
+      >
+        <PictureAsPdfIcon />
+      </IconButton>
+    )}
   </div>
 </TableCell>
+
                     <TableCell align="right">
                       <IconButton
                         size="small"
@@ -581,7 +633,10 @@ const getStatusColor = (status) => {
           </MenuItem>
           <MenuItem onClick={handleEditCourrier}>Modifier</MenuItem>
           <Divider />
-          <MenuItem onClick={handleMarkAsTreated3}>Transférer La réponse au Service</MenuItem>
+       <MenuItem onClick={handleOpenDialog}>
+        Transférer La réponse au Service
+      </MenuItem>
+
           <MenuItem onClick={handleMarkAsTreated4}>Marquer comme Reçu</MenuItem>
           <Divider />
           <MenuItem onClick={handleDeleteCourrier} sx={{ color: 'error.main' }}>Supprimer</MenuItem>
@@ -618,6 +673,89 @@ const getStatusColor = (status) => {
             </Button>
           </DialogActions>
         </Dialog>
+    <Dialog
+      open={openDialog}
+      onClose={handleCloseDialog}
+      keepMounted
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          p: 1,
+          boxShadow: 8
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontWeight: "bold",
+          fontSize: "1.25rem",
+          textAlign: "center",
+          borderBottom: "1px solid #eee"
+        }}
+      >
+        Transférer la réponse
+      </DialogTitle>
+
+      <DialogContent>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            p: 2
+          }}
+        >
+          <Button
+            variant="outlined"
+            component="label"
+            startIcon={<UploadIcon />}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none"
+            }}
+          >
+            {selectedFile ? "Changer de fichier" : "Sélectionner un PDF"}
+            <input
+              type="file"
+              hidden
+              accept="application/pdf"
+              onChange={handleFileChange}
+            />
+          </Button>
+
+          {selectedFile && (
+            <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
+              📄 {selectedFile.name}
+            </Typography>
+          )}
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+        <Button
+          onClick={handleCloseDialog}
+          variant="outlined"
+          sx={{ borderRadius: 2, textTransform: "none" }}
+        >
+          Annuler
+        </Button>
+        <Button
+          onClick={handleSubmitResponse}
+          variant="contained"
+          disabled={!selectedFile}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none"
+          }}
+        >
+          Envoyer
+        </Button>
+      </DialogActions>
+    </Dialog>
+
       </Box>
     </Box>
   );

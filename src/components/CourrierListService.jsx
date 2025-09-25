@@ -47,6 +47,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import courrierApi from '../services/courrierApi';  // ton api custom
 import useAutoLogout from './Authentification/useAutoLogout';
+import NotificationsIcon from '@mui/icons-material/Notifications'; // ou toute autre icône pertinente
 
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 const CourrierListService = () => {
@@ -197,6 +198,7 @@ const handleConfirmTransferToBureau = async () => {
           status: "RECU_BUREAU",
           bureauRecepteur: bureau,
           dateReceptionService: new Date(),
+          dateReceptionB: new Date(),
         };
 console.log("Dupliquer et transférer le courrier",nouveauCourrier)
         await courrierApi.createCourrier(nouveauCourrier); // Assure-toi que cette méthode existe
@@ -451,7 +453,7 @@ const bureauxDisponibles = selectedRow
                   {/* <TableCell>Entité</TableCell> */}
              
                     <TableCell>Date arrivée</TableCell>
-            <TableCell>Service  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+                 <TableCell>Service  <strong>&</strong> Date Reception</TableCell> {/* En-tête */}
 
                 
                 
@@ -460,10 +462,10 @@ const bureauxDisponibles = selectedRow
                 
                
                  
-                 <TableCell>Bureau  <strong>&</strong> Date Envoi</TableCell> {/* En-tête */}
+                 <TableCell>Bureau  <strong>&</strong> Date Reception</TableCell> {/* En-tête */}
                   <TableCell>Date Traitement</TableCell>
                     <TableCell>Statut</TableCell>
-                    <TableCell>View</TableCell>
+<TableCell>Courriers <strong>&</strong> Reponse </TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -482,7 +484,7 @@ const bureauxDisponibles = selectedRow
 <TableCell>
   <div>
     <strong>Service :</strong> {row.serviceDestinataire}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionService)}
+    <strong>Date Reception :</strong> {formatDate(row.dateEnvoi)}
   </div>
 </TableCell>
                       
@@ -512,30 +514,51 @@ const bureauxDisponibles = selectedRow
                       <TableCell>
   <div>
     <strong>Bureau :</strong> {row.bureauRecepteur}<br />
-    <strong>Date envoi :</strong> {formatDate(row.dateReceptionBureau)}
+    <strong>Date Reception :</strong> {formatDate(row.dateReceptionService)}
   </div>
 </TableCell>
                        <TableCell>{formatDate(row.dateTraitement)}</TableCell>
-                       <TableCell>
-                        <Chip
-                          label={getStatusLabel(row.status)}
-                          size="small"
-                          color={getStatusColor(row.status)}
-                          onClick={() => { }}
-                        />
-                      </TableCell>
-                       {/* Nouvelle colonne pour visualiser le PDF */}
 <TableCell>
-  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-
-
+  <Chip
+    label={getStatusLabel(row.status)}
+    size="small"
+    color={getStatusColor(row.status)}
+    icon={row.status === 'BUREAU_SERVICE' ? <NotificationsIcon  /> : undefined}
+    onClick={() => {}}
+  />
+</TableCell>
+                       {/* Nouvelle colonne pour visualiser le PDF */}
+<TableCell align="center">
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center", // centre horizontalement
+      alignItems: "center",     // centre verticalement
+      gap: "8px"
+    }}
+  >
+    {/* Courrier original */}
     {row.cheminFichierPdf && (
       <IconButton
         component="a"
-        href={`http://localhost:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierPdf.split("\\").pop()}`}
         target="_blank"
         rel="noopener noreferrer"
         color="error"
+        size="small"
+      >
+        <PictureAsPdfIcon />
+      </IconButton>
+    )}
+
+    {/* Réponse */}
+    {row.cheminFichierReponsePdf && (
+      <IconButton
+        component="a"
+        href={`http://192.168.1.68:8080/uploads/courriers/${row.cheminFichierReponsePdf.split("\\").pop()}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="primary"
         size="small"
       >
         <PictureAsPdfIcon />
@@ -584,7 +607,10 @@ const bureauxDisponibles = selectedRow
           <Divider />
           <MenuItem onClick={handleOpenBureauDialog}   disabled={
     !selectedRow || 
-    (selectedRow.status !== "RECU_BUREAU" && selectedRow.status !== "BUREAU_SERVICE")
+    (
+      // selectedRow.status !== "RECU_BUREAU" &&
+      
+      selectedRow.status !== "RECU_SERVICE")
   }
   >Transférer au bureau</MenuItem>
           <MenuItem onClick={handleMarkAsTreated}>Marquer comme traité</MenuItem>

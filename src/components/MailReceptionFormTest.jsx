@@ -384,7 +384,7 @@ const MailReceptionFormTest = () => {
         <Divider sx={{ my: 2 }} />
 
         {/* Section Transmission */}
-        <Box sx={{ bgcolor: "secondary.light", p: 2, borderRadius: 1, mb: 3 }}>
+        <Box sx={{ bgcolor: "primary.light", p: 2, borderRadius: 1, mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
             📤 Transmis le : {formData.dateArrivee}
           </Typography>
@@ -482,7 +482,7 @@ const MailReceptionFormTest = () => {
         <Divider sx={{ my: 2 }} />
 
         {/* Instructions */}
-        <Box sx={{ bgcolor: "info.light", p: 2, borderRadius: 1, mb: 3 }}>
+        <Box sx={{ bgcolor: "primary.light", p: 2, borderRadius: 1, mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom sx={{ color: "white", fontWeight: "bold" }}>
             📋 Instructions
           </Typography>
